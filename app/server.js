@@ -31,7 +31,7 @@ app.get("/games", async function (req, res) {
                 startsBefore: startOfTomorrow.toISOString(),
                 finalized: false,
                 oddsAvailable: true,
-                limit: 50
+                limit: 20
             }
         };
 
@@ -68,7 +68,7 @@ app.get("/games", async function (req, res) {
                 awayTeamID: event.teams.away.teamID,
                 homeTeamID: event.teams.home.teamID,
 
-                // if/else
+                // if/else to check if odds are available, if not, return "N/A"
                 awayOdds: awayMoneyline
                     ? awayMoneyline.bookOdds
                     : "N/A",
