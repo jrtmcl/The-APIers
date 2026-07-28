@@ -1,0 +1,16 @@
+body {
+    background-color: bisque;
+}
+
+
+.logo {
+    font-size: 32px;
+    color: green;
+    background-color: transparent;
+    text-decoration: none;
+}
+
+#welcome {
+    text-align: center;
+    margin: 20px auto;
+}

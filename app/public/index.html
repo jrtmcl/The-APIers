@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+    <title>The APIers</title>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <nav class="navbar">
+            <a class="logo" href="/">Bet375</a>
+            <section>
+                <h2 id = "welcome">Welcome To The APIers' Betting Sportsbook</h2>
+            </section>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/teams">Teams</a>
+                <a href="/players">Players</a>
+                <a href="/my-bets">My Bets</a>
+            </div>
+    
+            <div class="account-buttons">
+                <button id="login">
+                    Login
+                </button>
+    
+                <button id="signup">
+                    Sign Up
+                </button>
+            </div>
+        </nav>
+    </header>
+
+<main>
+
+<section id ="account">
+    <h2>Account</h2>
+
+    <button id="deposit">Deposit</button>
+    <button id="withdraw">Withdraw</button>
+</section>
+
+<section>
+    <h2>Today's MLB Games</h2>
+
+    <p id="message">Loading...</p>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Away Team</th>
+                <th>Home Team</th>
+                <th>Away Moneyline</th>
+                <th>Home Moneyline</th>
+                <th>Bet</th>
+            </tr>
+        </thead>
+
+        <tbody id="games"></tbody>
+    </table>
+</section>
+
+</main>
+
+<script>
+fetch("/games")
+    .then(function (response) {
+        if (!response.ok) {
+            throw new Error(
+                "Request failed with status " + response.status
+            );
+        }
+
+        return response.json();
+    })
+    .then(function (games) {
+        console.log("Games received:", games);
+
+        let tbody = document.getElementById("games");
+        let message = document.getElementById("message");
+
+        tbody.innerHTML = "";
+
+        if (!Array.isArray(games)) {
+            throw new Error(
+                "The server did not return an array of games."
+            );
+        }
+
+        if (games.length === 0) {
+            message.textContent = "No MLB games found today.";
+            return;
+        }
+
+        message.textContent = "";
+
+        games.forEach(function (game) {
+            let row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${new Date(game.date).toLocaleString()}</td>
+                <td>${game.awayTeamName}</td>
+                <td>${game.homeTeamName}</td>
+                <td>${formatOdds(game.awayOdds)}</td>
+                <td>${formatOdds(game.homeOdds)}</td>
+                <td>
+                    <button type="button">
+                        Bet
+                    </button>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+        });
+    })
+    .catch(function (error) {
+        console.error(error);
+
+        document.getElementById("message").textContent =
+            "Something went wrong: " + error.message;
+    });
+
+function formatOdds(odds) {
+    if (odds === null || odds === undefined || odds === "N/A") {
+        return "N/A";
+    }
+
+    let oddsText = String(odds);
+
+    if (
+        !oddsText.startsWith("+") &&
+        Number(oddsText) > 0
+    ) {
+        return "+" + oddsText;
+    }
+
+    return oddsText;
+}
+</script>
+
+</body>
+</html>
