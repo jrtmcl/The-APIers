@@ -43,7 +43,7 @@
     <button id="withdraw">Withdraw</button>
 </section>
 
-<section>
+<section id="home-view">
     <h2>Today's MLB Games</h2>
 
     <p>
@@ -51,7 +51,7 @@
     and player statistics.
 </p>
 
-    <p id="message">Loading...</p>
+    <p id="games-message">Loading...</p>
 
     <table border="1">
         <thead>
@@ -69,9 +69,58 @@
     </table>
 </section>
 
+<section id="teams-view" style="display: none;">
+    <h2>MLB Teams</h2>
+
+    <p id="teams-message">Loading...</p>
+
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Team Name</th>
+                <th>Wins</th>
+                <th>Losses</th>
+            </tr>
+        </thead>
+
+        <tbody id="teams"></tbody>
+    </table>
+</section>
+
+<section id="players-view" style="display: none;">
+    <h2>MLB Players</h2>
+
+    <p id="players-message">Loading...</p>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Position</th>
+            </tr>
+        </thead>
+
+        <tbody id="players"></tbody>
+    </table>
+</section>
+
 </main>
 
 <script>
+let path = window.location.pathname;
+
+if (path === "/teams") {
+    showView("teams-view");
+    loadTeams();
+}
+
+else if (path === "/players") {
+    showView("players-view");
+    loadPlayers();
+}
+
 fetch("/games")
     .then(function (response) {
         if (!response.ok) {
@@ -86,7 +135,7 @@ fetch("/games")
         console.log("Games received:", games);
 
         let tbody = document.getElementById("games");
-        let message = document.getElementById("message");
+        let message = document.getElementById("games-message");
 
         tbody.innerHTML = "";
 
@@ -125,9 +174,122 @@ fetch("/games")
     .catch(function (error) {
         console.error(error);
 
-        document.getElementById("message").textContent =
+        document.getElementById("games-message").textContent =
             "Something went wrong: " + error.message;
     });
+
+function showView(viewId) {
+    let views = ["home-view", "teams-view", "players-view"];
+
+    views.forEach(function (id) {
+        document.getElementById(id).style.display =
+            id === viewId ? "block" : "none";
+    });
+}
+
+function loadTeams() {
+    fetch("/api/teams")
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error(
+                    "Request failed with status " + response.status
+                );
+            }
+
+            return response.json();
+        })
+        .then(function (teams) {
+            console.log("Teams received:", teams);
+
+            let tbody = document.getElementById("teams");
+            let message = document.getElementById("teams-message");
+
+            tbody.innerHTML = "";
+
+            if (!Array.isArray(teams)) {
+                throw new Error(
+                    "The server did not return an array of teams."
+                );
+            }
+
+            if (teams.length === 0) {
+                message.textContent = "No teams found.";
+                return;
+            }
+
+            message.textContent = "";
+
+            teams.forEach(function (team) {
+                let row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${team.name}</td>
+                    <td>${team.wins}</td>
+                    <td>${team.losses}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        })
+        .catch(function (error) {
+            console.error(error);
+
+            document.getElementById("teams-message").textContent =
+                "Something went wrong: " + error.message;
+        });
+}
+
+function loadPlayers() {
+    fetch("/api/players")
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error(
+                    "Request failed with status " + response.status
+                );
+            }
+
+            return response.json();
+        })
+        .then(function (players) {
+            console.log("Players received:", players);
+
+            let tbody = document.getElementById("players");
+            let message = document.getElementById("players-message");
+
+            tbody.innerHTML = "";
+
+            if (!Array.isArray(players)) {
+                throw new Error(
+                    "The server did not return an array of players."
+                );
+            }
+
+            if (players.length === 0) {
+                message.textContent = "No players found.";
+                return;
+            }
+
+            message.textContent = "";
+
+            players.forEach(function (player) {
+                let row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${player.name}</td>
+                    <td>${player.team}</td>
+                    <td>${player.position}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        })
+        .catch(function (error) {
+            console.error(error);
+
+            document.getElementById("players-message").textContent =
+                "Something went wrong: " + error.message;
+        });
+}
 
 function formatOdds(odds) {
     if (odds === null || odds === undefined || odds === "N/A") {

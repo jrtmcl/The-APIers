@@ -100,6 +100,40 @@ app.get("/games", async function (req, res) {
     }
 });
 
+app.get("/teams", function (req, res) {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/players", function (req, res) {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/api/teams", async function (req, res) {
+    let teams = [{teamID: "1", name: "Team 1", wins: "City 1", losses: "State 1"}];
+
+    if (!teams || teams.length === 0) {
+        res.status(404).json({
+            success: false,
+            error: "No team found"
+        });
+    } else {
+        res.json(teams);
+    }
+});
+
+app.get("/api/players", async function (req, res) {
+    let players = [{playerID: "1", name: "Player 1", team: "1", position: "Pitcher"}];
+
+    if (!players || players.length === 0) {
+        res.status(404).json({
+            success: false,
+            error: "No player found"
+        });
+    } else {
+        res.json(players);
+    }
+});
+
 app.listen(port, hostname, function () {
     console.log(`Listening at http://${hostname}:${port}`);
 });
