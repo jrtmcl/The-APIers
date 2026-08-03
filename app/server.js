@@ -10,7 +10,7 @@ let port = 3000;
 let env = require("../env.json");
 
 app.use(express.static(path.join(__dirname, "public")));
-
+/*
 app.get("/games", async function (req, res) {
     try {
         let now = new Date();
@@ -99,7 +99,7 @@ app.get("/games", async function (req, res) {
         });
     }
 });
-
+*/
 app.get("/teams", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -132,6 +132,10 @@ app.get("/api/players", async function (req, res) {
     } else {
         res.json(players);
     }
+});
+
+app.get("/how-to", function (req, res) {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(port, hostname, function () {
