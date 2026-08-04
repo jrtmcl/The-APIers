@@ -1,0 +1,13 @@
+CREATE DATABASE bet375;
+
+CREATE TABLE IF NOT EXISTS bets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    betAmount INT NOT NULL,
+    potentialWinnings INT NOT NULL,
+    date VARCHAR(255) NOT NULL,
+    homeTeam VARCHAR(255) NOT NULL,
+    awayTeam VARCHAR(255) NOT NULL,
+    odds VARCHAR(255) NOT NULL,
+    teamToWin VARCHAR(255) NOT NULL
+);
