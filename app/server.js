@@ -6,6 +6,9 @@ let app = express();
 
 let hostname = "localhost";
 let port = 3000;
+let season = 2026;
+let MLB_TEAMS_URL =
+    "https://statsapi.mlb.com/api/v1/teams?sportId=1&season=" + season;
 
 let env = require("../env.json");
 
@@ -122,15 +125,63 @@ app.get("/api/teams", async function (req, res) {
 });
 
 app.get("/api/players", async function (req, res) {
-    let players = [{playerID: "1", name: "Player 1", team: "1", position: "Pitcher"}];
+    try {
+        let teamFilter = req.query.team;
+        let typeFilter = req.query.type;
 
-    if (!players || players.length === 0) {
-        res.status(404).json({
-            success: false,
-            error: "No player found"
+        let groups =
+            typeFilter === "hitting" || typeFilter === "pitching"
+                ? [typeFilter]
+                : ["hitting", "pitching"];
+
+        let allPlayers = [];
+
+        for (let group of groups) {
+            let url =
+                "https://statsapi.mlb.com/api/v1/stats?stats=season&season=" +
+                season +
+                "&group=" +
+                group +
+                "&sportId=1&limit=3000";
+
+            let response = await axios.get(url);
+            let data = response.data;
+            let splits = (data.stats && data.stats[0] && data.stats[0].splits) || [];
+
+            splits.forEach(function (split) {
+                allPlayers.push({
+                    name: split.player ? split.player.fullName : "Unknown",
+                    team: split.team ? split.team.name : "Unknown",
+                    teamId: split.team ? split.team.id : null,
+                    position:
+                        group === "pitching"
+                            ? "Pitcher"
+                            : split.position
+                            ? split.position.abbreviation
+                            : "Unknown",
+                    type: group,
+                    keyStat:
+                        group === "pitching"
+                            ? "ERA " + (split.stat ? split.stat.era : "-")
+                            : "AVG " + (split.stat ? split.stat.avg : "-"),
+                });
+            });
+        }
+
+        let filtered = allPlayers;
+
+        if (teamFilter) {
+            filtered = filtered.filter(function (player) {
+                return String(player.teamId) === String(teamFilter);
+            });
+        }
+
+        res.json(filtered);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: "Failed to load players: " + error.message,
         });
-    } else {
-        res.json(players);
     }
 });
 

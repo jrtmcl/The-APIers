@@ -91,6 +91,18 @@
 <section id="players-view" style="display: none;">
     <h2>MLB Players</h2>
 
+    <label for="team-filter">Team:</label>
+    <select id="team-filter">
+        <option value="">All Teams</option>
+    </select>
+ 
+    <label for="type-filter">Show:</label>
+    <select id="type-filter">
+        <option value="">All Players</option>
+        <option value="hitting">Fielders</option>
+        <option value="pitching">Pitchers</option>
+    </select>
+
     <p id="players-message">Loading...</p>
 
     <table border="1">
@@ -150,6 +162,7 @@
 
 <script>
 let path = window.location.pathname;
+let allPlayers = [];
 
 if (path === "/teams") {
     showView("teams-view");
@@ -288,6 +301,9 @@ function loadTeams() {
 }
 
 function loadPlayers() {
+    let message = document.getElementById("players-message");
+    message.textContent = "Loading...";
+
     fetch("/api/players")
         .then(function (response) {
             if (!response.ok) {
@@ -317,19 +333,9 @@ function loadPlayers() {
                 return;
             }
 
-            message.textContent = "";
-
-            players.forEach(function (player) {
-                let row = document.createElement("tr");
-
-                row.innerHTML = `
-                    <td>${player.name}</td>
-                    <td>${player.team}</td>
-                    <td>${player.position}</td>
-                `;
-
-                tbody.appendChild(row);
-            });
+            allPlayers = players;
+            populateTeamFilter(players);
+            renderPlayers();
         })
         .catch(function (error) {
             console.error(error);
@@ -338,6 +344,72 @@ function loadPlayers() {
                 "Something went wrong: " + error.message;
         });
 }
+
+function populateTeamFilter(players) {
+    let select = document.getElementById("team-filter");
+
+    select.innerHTML = '<option value="">All Teams</option>';
+
+    let seen = {};
+    let teams = [];
+
+    players.forEach(function (player) {
+        if (player.teamId && !seen[player.teamId]) {
+            seen[player.teamId] = true;
+            teams.push({ id: player.teamId, name: player.team });
+        }
+    });
+
+    teams.sort(function (a, b) {
+        return a.name.localeCompare(b.name);
+    });
+
+    teams.forEach(function (team) {
+        let option = document.createElement("option");
+        option.value = team.id;
+        option.textContent = team.name;
+        select.appendChild(option);
+    });
+}
+
+function renderPlayers() {
+    let teamFilter = document.getElementById("team-filter").value;
+    let typeFilter = document.getElementById("type-filter").value;
+
+    let filtered = allPlayers.filter(function (player) {
+        let matchesTeam = !teamFilter || String(player.teamId) === teamFilter;
+        let matchesType = !typeFilter || player.type === typeFilter;
+        return matchesTeam && matchesType;
+    });
+
+    let tbody = document.getElementById("players");
+    let message = document.getElementById("players-message");
+
+    tbody.innerHTML = "";
+
+    if (filtered.length === 0) {
+        message.textContent = "No players found.";
+        return;
+    }
+
+    message.textContent = "";
+
+    filtered.forEach(function (player) {
+        let row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${player.name}</td>
+            <td>${player.team}</td>
+            <td>${player.position}</td>
+            <td>${player.keyStat}</td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
+
+document.getElementById("team-filter").addEventListener("change", renderPlayers);
+document.getElementById("type-filter").addEventListener("change", renderPlayers);
 
 function formatOdds(odds) {
     if (odds === null || odds === undefined || odds === "N/A") {
