@@ -112,15 +112,48 @@ app.get("/players", function (req, res) {
 });
 
 app.get("/api/teams", async function (req, res) {
-    let teams = [{teamID: "1", name: "Team 1", wins: "City 1", losses: "State 1"}];
+    try {
+        let url =
+            "https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season=" +
+            season +
+            "&standingsTypes=regularSeason";
 
-    if (!teams || teams.length === 0) {
-        res.status(404).json({
-            success: false,
-            error: "No team found"
+        let response = await axios.get(url);
+        let data = response.data;
+        let records = data.records || [];
+
+        let teams = [];
+
+        records.forEach(function (division) {
+            let teamRecords = division.teamRecords || [];
+
+            teamRecords.forEach(function (teamRecord) {
+                teams.push({
+                    teamId: teamRecord.team ? teamRecord.team.id : null,
+                    name: teamRecord.team ? teamRecord.team.name : "Unknown",
+                    wins: teamRecord.wins,
+                    losses: teamRecord.losses,
+                });
+            });
         });
-    } else {
-        res.json(teams);
+
+        teams.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
+
+        if (!teams || teams.length === 0) {
+            res.status(404).json({
+                success: false,
+                error: "No teams found",
+            });
+        } else {
+            res.json(teams);
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: "Failed to load teams: " + error.message,
+        });
     }
 });
 
