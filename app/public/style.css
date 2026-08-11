@@ -1,8 +1,8 @@
 body{
     margin:0;
     background:#eef7f0;
-    font-family:"Oswald", Arial, sans-serif;
-    background-image: linear-gradient(rgba(4, 30, 66, 0.65), rgba(4, 30, 66, 0.65)), url('https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWZ2bXp0azUycnFhZTh3amhzNGNpNXJ2bnN2Yjh3dTBqbHcwY2R4NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VmjjnsdJFAmCc6iHmx/giphy.gif');
+    font-family:Arial, Helvetica, sans-serif;
+    background-image: linear-gradient(rgba(19, 114, 247, 0.65), rgba(4, 30, 66, 0.65)), url('https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWZ2bXp0azUycnFhZTh3amhzNGNpNXJ2bnN2Yjh3dTBqbHcwY2R4NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VmjjnsdJFAmCc6iHmx/giphy.gif');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -24,8 +24,9 @@ body{
 
 .logo{
     min-height:40px;
-    padding-left:70px;
+    padding-left:80px;
     font-size:36px;
+    font-family:Impact, "Arial Narrow Bold", Arial, sans-serif;
     font-weight:bold;
     color:white;
     text-decoration:none;
