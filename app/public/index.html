@@ -27,6 +27,10 @@
                 <button id="signup">
                     Sign Up
                 </button>
+
+                <button id="balance">
+                    Balance: 500 credits
+                </button>
             </div>
         </nav>
     </header>
@@ -61,7 +65,6 @@
                 <th>Home Team</th>
                 <th>Away Moneyline</th>
                 <th>Home Moneyline</th>
-                <th>Bet</th>
             </tr>
         </thead>
 
@@ -204,12 +207,17 @@ fetch("/games")
                 <td>${new Date(game.date).toLocaleString()}</td>
                 <td>${game.awayTeamName}</td>
                 <td>${game.homeTeamName}</td>
-                <td>${formatOdds(game.awayOdds)}</td>
-                <td>${formatOdds(game.homeOdds)}</td>
-                <td>
-                    <button type="button">
-                        Bet
-                    </button>
+
+                <td class="odds-cell">
+                <button type="button" class="odds-button">
+                    ${formatOdds(game.awayOdds)}
+                </button>
+                </td>
+
+                <td class="odds-cell">
+                <button type="button" class="odds-button">
+                    ${formatOdds(game.homeOdds)}
+                </button>
                 </td>
             `;
 

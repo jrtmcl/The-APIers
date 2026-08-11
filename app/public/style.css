@@ -50,3 +50,26 @@ body{
     font-size:16px;
     cursor:pointer;
 }
+
+.odds-cell {
+    padding: 5px;
+}
+
+.odds-button {
+    width: 100%;
+    padding: 10px 15px;
+
+    border: 1px solid #999;
+    border-radius: 5px;
+
+    background-color: lightgreen;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.odds-button:hover {
+    background-color: #e0e0e0;
+}
