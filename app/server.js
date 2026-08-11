@@ -186,36 +186,64 @@ app.get("/api/players", async function (req, res) {
 
         let allPlayers = [];
 
+        let PAGE_SIZE = 500;
+
         for (let group of groups) {
-            let url =
-                "https://statsapi.mlb.com/api/v1/stats?stats=season&season=" +
-                season +
-                "&group=" +
-                group +
-                "&sportId=1&limit=3000";
+            let offset = 0;
+            let totalSplits = null;
 
-            let response = await axios.get(url);
-            let data = response.data;
-            let splits = (data.stats && data.stats[0] && data.stats[0].splits) || [];
+            while (totalSplits === null || offset < totalSplits) {
+                let url =
+                    "https://statsapi.mlb.com/api/v1/stats?stats=season&season=" +
+                    season +
+                    "&group=" +
+                    group +
+                    "&sportId=1&limit=" +
+                    PAGE_SIZE +
+                    "&offset=" +
+                    offset;
 
-            splits.forEach(function (split) {
-                allPlayers.push({
-                    name: split.player ? split.player.fullName : "Unknown",
-                    team: split.team ? split.team.name : "Unknown",
-                    teamId: split.team ? split.team.id : null,
-                    position:
-                        group === "pitching"
-                            ? "Pitcher"
-                            : split.position
-                            ? split.position.abbreviation
-                            : "Unknown",
-                    type: group,
-                    keyStat:
-                        group === "pitching"
-                            ? "ERA " + (split.stat ? split.stat.era : "-")
-                            : "AVG " + (split.stat ? split.stat.avg : "-"),
+                let response = await axios.get(url);
+                let data = response.data;
+                let statBlock = data.stats && data.stats[0];
+                let splits = (statBlock && statBlock.splits) || [];
+
+                totalSplits =
+                    statBlock && typeof statBlock.totalSplits === "number"
+                        ? statBlock.totalSplits
+                        : splits.length;
+
+                splits.forEach(function (split) {
+                    let stat = split.stat || {};
+
+                    allPlayers.push({
+                        name: split.player ? split.player.fullName : "Unknown",
+                        team: split.team ? split.team.name : "Unknown",
+                        teamId: split.team ? split.team.id : null,
+                        position:
+                            group === "pitching"
+                                ? "Pitcher"
+                                : split.position
+                                ? split.position.abbreviation
+                                : "Unknown",
+                        type: group,
+                        avg: parseFloat(stat.avg),
+                        era: parseFloat(stat.era),
+                        atBats: Number(stat.atBats) || 0,
+                        inningsPitched: parseFloat(stat.inningsPitched) || 0,
+                        keyStat:
+                            group === "pitching"
+                                ? "ERA " + (stat.era !== undefined ? stat.era : "-")
+                                : "AVG " + (stat.avg !== undefined ? stat.avg : "-"),
+                    });
                 });
-            });
+
+                if (splits.length === 0) {
+                    break;
+                }
+
+                offset += PAGE_SIZE;
+            }
         }
 
         let filtered = allPlayers;

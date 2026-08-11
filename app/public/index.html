@@ -90,8 +90,7 @@
  
     <label for="type-filter">Show:</label>
     <select id="type-filter">
-        <option value="">All Players</option>
-        <option value="hitting">Fielders</option>
+        <option value="hitting" selected>Fielders</option>
         <option value="pitching">Pitchers</option>
     </select>
 
@@ -103,6 +102,7 @@
                 <th>Name</th>
                 <th>Team</th>
                 <th>Position</th>
+                <th>Key Stat</th>
             </tr>
         </thead>
 
@@ -401,40 +401,66 @@ function populateTeamFilter(players) {
     });
 }
 
+let QUALIFIED_AT_BATS = 50;
+let QUALIFIED_INNINGS_PITCHED = 20;
+let LEADERBOARD_SIZE = 30;
+
 function renderPlayers() {
     let teamFilter = document.getElementById("team-filter").value;
     let typeFilter = document.getElementById("type-filter").value;
 
     let filtered = allPlayers.filter(function (player) {
-        let matchesTeam = !teamFilter || String(player.teamId) === teamFilter;
-        let matchesType = !typeFilter || player.type === typeFilter;
-        return matchesTeam && matchesType;
-    });
+            return player.type === typeFilter;
+        });
 
-    let tbody = document.getElementById("players");
-    let message = document.getElementById("players-message");
+        if (teamFilter) {
+            filtered = filtered.filter(function (player) {
+                return String(player.teamId) === teamFilter;
+            });
+        } else {
+            filtered = filtered.filter(function (player) {
+                if (typeFilter === "hitting") {
+                    return player.atBats >= QUALIFIED_AT_BATS;
+                }
+                return player.inningsPitched >= QUALIFIED_INNINGS_PITCHED;
+            });
+        }
 
-    tbody.innerHTML = "";
+        filtered.sort(function (a, b) {
+            if (typeFilter === "hitting") {
+                return b.avg - a.avg;
+            }
+            return a.era - b.era;
+        });
 
-    if (filtered.length === 0) {
-        message.textContent = "No players found.";
-        return;
-    }
+        if (!teamFilter) {
+            filtered = filtered.slice(0, LEADERBOARD_SIZE);
+        }
 
-    message.textContent = "";
+        let tbody = document.getElementById("players");
+        let message = document.getElementById("players-message");
 
-    filtered.forEach(function (player) {
-        let row = document.createElement("tr");
+        tbody.innerHTML = "";
 
-        row.innerHTML = `
-            <td>${player.name}</td>
-            <td>${player.team}</td>
-            <td>${player.position}</td>
-            <td>${player.keyStat}</td>
-        `;
+        if (filtered.length === 0) {
+            message.textContent = "No players found.";
+            return;
+        }
 
-        tbody.appendChild(row);
-    });
+        message.textContent = "";
+
+        filtered.forEach(function (player) {
+            let row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${player.name}</td>
+                <td>${player.team}</td>
+                <td>${player.position}</td>
+                <td>${player.keyStat}</td>
+            `;
+
+            tbody.appendChild(row);
+        });
 }
 
 document.getElementById("team-filter").addEventListener("change", renderPlayers);
