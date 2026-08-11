@@ -71,21 +71,10 @@
 
 <section id="teams-view" style="display: none;">
     <h2>MLB Teams</h2>
-
-    <p id="teams-message">Loading...</p>
-
-
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Team Name</th>
-                <th>Wins</th>
-                <th>Losses</th>
-            </tr>
-        </thead>
-
-        <tbody id="teams"></tbody>
-    </table>
+ 
+    <p id="teams-message"></p>
+ 
+    <div id="teams-groups"></div>
 </section>
 
 <section id="players-view" style="display: none;">
@@ -249,6 +238,11 @@ function showView(viewId) {
 }
 
 function loadTeams() {
+    let message = document.getElementById("teams-message");
+    let container = document.getElementById("teams-groups");
+
+    message.textContent = "Loading...";
+
     fetch("/api/teams")
         .then(function (response) {
             if (!response.ok) {
@@ -259,44 +253,71 @@ function loadTeams() {
 
             return response.json();
         })
-        .then(function (teams) {
-            console.log("Teams received:", teams);
+        .then(function (groups) {
+            console.log("Teams received:", groups);
 
-            let tbody = document.getElementById("teams");
-            let message = document.getElementById("teams-message");
-
-            tbody.innerHTML = "";
-
-            if (!Array.isArray(teams)) {
+            if (!Array.isArray(groups)) {
                 throw new Error(
-                    "The server did not return an array of teams."
+                    "The server did not return an array of team groups."
                 );
             }
 
-            if (teams.length === 0) {
+            if (groups.length === 0) {
                 message.textContent = "No teams found.";
                 return;
             }
 
             message.textContent = "";
 
-            teams.forEach(function (team) {
-                let row = document.createElement("tr");
+            let currentLeague = null;
 
-                row.innerHTML = `
-                    <td>${team.name}</td>
-                    <td>${team.wins}</td>
-                    <td>${team.losses}</td>
+            groups.forEach(function (group) {
+                if (group.league !== currentLeague) {
+                    currentLeague = group.league;
+
+                    let leagueHeading = document.createElement("h3");
+                    leagueHeading.textContent = currentLeague;
+                    container.appendChild(leagueHeading);
+                }
+
+                let divisionHeading = document.createElement("h4");
+                divisionHeading.textContent = group.division;
+                container.appendChild(divisionHeading);
+
+                let table = document.createElement("table");
+                table.setAttribute("border", "1");
+
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>Wins</th>
+                            <th>Losses</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
                 `;
 
-                tbody.appendChild(row);
+                let tbody = table.querySelector("tbody");
+
+                group.teams.forEach(function (team) {
+                    let row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${team.name}</td>
+                        <td>${team.wins}</td>
+                        <td>${team.losses}</td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+
+                container.appendChild(table);
             });
         })
         .catch(function (error) {
             console.error(error);
-
-            document.getElementById("teams-message").textContent =
-                "Something went wrong: " + error.message;
+            message.textContent = "Something went wrong: " + error.message;
         });
 }
 

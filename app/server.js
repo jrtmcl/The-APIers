@@ -122,32 +122,49 @@ app.get("/api/teams", async function (req, res) {
         let data = response.data;
         let records = data.records || [];
 
-        let teams = [];
-
-        records.forEach(function (division) {
+        let groups = records.map(function (division) {
             let teamRecords = division.teamRecords || [];
 
-            teamRecords.forEach(function (teamRecord) {
-                teams.push({
+            let teams = teamRecords.map(function (teamRecord) {
+                return {
                     teamId: teamRecord.team ? teamRecord.team.id : null,
                     name: teamRecord.team ? teamRecord.team.name : "Unknown",
                     wins: teamRecord.wins,
                     losses: teamRecord.losses,
-                });
+                };
             });
+ 
+            teams.sort(function (a, b) {
+                return b.wins - a.wins;
+            });
+ 
+            return {
+                league: division.league ? division.league.name : "Unknown League",
+                division: division.division ? division.division.name : "Unknown Division",
+                teams: teams,
+            };
         });
 
-        teams.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
+        let divisionOrder = [
+            "American League East",
+            "American League Central",
+            "American League West",
+            "National League East",
+            "National League Central",
+            "National League West",
+        ];
+
+        groups.sort(function (a, b) {
+            return divisionOrder.indexOf(a.division) - divisionOrder.indexOf(b.division);
         });
 
-        if (!teams || teams.length === 0) {
+        if (!groups || groups.length === 0) {
             res.status(404).json({
                 success: false,
                 error: "No teams found",
             });
         } else {
-            res.json(teams);
+            res.json(groups);
         }
     } catch (error) {
         console.error(error);
