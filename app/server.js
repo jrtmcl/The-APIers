@@ -267,6 +267,10 @@ app.get("/how-to", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+app.get("/my-bets", function (req, res) {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 app.listen(port, hostname, function () {
     console.log(`Listening at http://${hostname}:${port}`);
 });

@@ -11,6 +11,10 @@ body{
 
 /* NAV BAR */
 
+main {
+    color:white;
+}
+
 .navbar{
     height:80px;
     background:#bf1212;
