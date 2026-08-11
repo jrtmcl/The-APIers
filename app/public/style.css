@@ -1,14 +1,19 @@
 body{
     margin:0;
     background:#eef7f0;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family:"Oswald", Arial, sans-serif;
+    background-image: linear-gradient(rgba(4, 30, 66, 0.65), rgba(4, 30, 66, 0.65)), url('https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWZ2bXp0azUycnFhZTh3amhzNGNpNXJ2bnN2Yjh3dTBqbHcwY2R4NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VmjjnsdJFAmCc6iHmx/giphy.gif');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
 
 /* NAV BAR */
 
 .navbar{
     height:80px;
-    background:#184d2f;
+    background:#bf1212;
 
     display:flex;
     align-items:center;
@@ -18,15 +23,22 @@ body{
 }
 
 .logo{
+    min-height:40px;
+    padding-left:70px;
     font-size:36px;
     font-weight:bold;
     color:white;
     text-decoration:none;
+    background-image: url("https://www.mlbstatic.com/team-logos/league-on-dark/1.svg");
+    background-size:60px 36px;
+    background-position:left;
+    background-repeat: no-repeat;
+
 }
 
 .nav-links{
     display:flex;
-    gap:30px;
+    gap:25px;
 }
 
 .nav-links a{
