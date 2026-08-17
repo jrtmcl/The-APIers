@@ -150,11 +150,60 @@
     <h3>THIS WILL NEED TO BE UPDATED ONCE ACTUAL LOGIC IS IMPLEMENTED</h3>
 </section>
 
+<section id="login-view" style="display: none;">
+    <h2>Login</h2>
+
+    <form id="login-form">
+        <div>
+            <label for="login-email">Email:</label>
+            <input
+                type="email"
+                id="login-email"
+                name="email"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="login-password">Password:</label>
+            <input
+                type="password"
+                id="login-password"
+                name="password"
+                required
+            >
+        </div>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <p id="login-message"></p>
+</section>
+
+
+
+
 </main>
 
 <script>
 let path = window.location.pathname;
 let allPlayers = [];
+
+let loginButton = document.getElementById("login");
+
+loginButton.addEventListener("click", function () {
+    window.location.href = "/login";
+});
+
+let loginForm = document.getElementById("login-form");
+
+loginForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    document.getElementById("login-message").textContent =
+        "Login functionality will be added soon.";
+});
+
 
 if (path === "/teams") {
     showView("teams-view");
@@ -164,9 +213,18 @@ if (path === "/teams") {
 else if (path === "/players") {
     showView("players-view");
     loadPlayers();
-} 
+}
+
 else if (path === "/how-to") {
     showView("how-to-view");
+}
+
+else if (path === "/login") {
+    showView("login-view");
+}
+
+else {
+    showView("home-view");
 }
 
 fetch("/games")
@@ -233,11 +291,12 @@ fetch("/games")
 
 function showView(viewId) {
     let views = [
-    "home-view",
-    "teams-view",
-    "players-view",
-    "how-to-view"
-];
+        "home-view",
+        "teams-view",
+        "players-view",
+        "how-to-view",
+        "login-view"
+    ];
 
     views.forEach(function (id) {
         document.getElementById(id).style.display =
