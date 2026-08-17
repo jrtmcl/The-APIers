@@ -46,7 +46,7 @@ function getTotal(event, periodID) {
 }
 
 app.use(express.static(path.join(__dirname, "public")));
-
+/*
 app.get("/games", async function (req, res) {
     try {
         let now = new Date();
@@ -139,7 +139,7 @@ app.get("/games", async function (req, res) {
         });
     }
 });
-
+*/
 app.get("/teams", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
