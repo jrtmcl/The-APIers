@@ -271,6 +271,10 @@ app.get("/login", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+app.get("/signup", function (req, res) {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 
 app.get("/my-bets", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));

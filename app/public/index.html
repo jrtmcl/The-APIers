@@ -180,7 +180,45 @@
     <p id="login-message"></p>
 </section>
 
+<section id="signup-view" style="display: none;">
+    <h2>Sign Up</h2>
 
+    <form id="signup-form">
+        <div>
+            <label for="signup-email">Email:</label>
+            <input
+                type="email"
+                id="signup-email"
+                name="email"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="signup-password">Password:</label>
+            <input
+                type="password"
+                id="signup-password"
+                name="password"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="signup-confirm-password">Confirm Password:</label>
+            <input
+                type="password"
+                id="signup-confirm-password"
+                name="confirm-password"
+                required
+            >
+        </div>
+
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <p id="signup-message"></p>
+</section>
 
 
 </main>
@@ -195,6 +233,12 @@ loginButton.addEventListener("click", function () {
     window.location.href = "/login";
 });
 
+let signupButton = document.getElementById("signup");
+
+signupButton.addEventListener("click", function () {
+    window.location.href = "/signup";
+});
+
 let loginForm = document.getElementById("login-form");
 
 loginForm.addEventListener("submit", function (event) {
@@ -202,6 +246,15 @@ loginForm.addEventListener("submit", function (event) {
 
     document.getElementById("login-message").textContent =
         "Login functionality will be added soon.";
+});
+
+let signupForm = document.getElementById("signup-form");
+
+signupForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    document.getElementById("signup-message").textContent =
+        "Sign up functionality will be added soon.";
 });
 
 
@@ -221,6 +274,10 @@ else if (path === "/how-to") {
 
 else if (path === "/login") {
     showView("login-view");
+}
+
+else if (path === "/signup") {
+    showView("signup-view");
 }
 
 else {
@@ -290,13 +347,14 @@ fetch("/games")
     });
 
 function showView(viewId) {
-    let views = [
-        "home-view",
-        "teams-view",
-        "players-view",
-        "how-to-view",
-        "login-view"
-    ];
+let views = [
+    "home-view",
+    "teams-view",
+    "players-view",
+    "how-to-view",
+    "login-view",
+    "signup-view"
+];
 
     views.forEach(function (id) {
         document.getElementById(id).style.display =
