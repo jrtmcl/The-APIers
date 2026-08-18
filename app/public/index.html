@@ -256,7 +256,6 @@ signupButton.addEventListener("click", function () {
 });
 
 let accountName = document.getElementById("account-name");
-let balanceButton = document.getElementById("balance");
 let logoutButton = document.getElementById("logout");
 
 function updateAccountHeader(user) {
@@ -279,6 +278,22 @@ function updateAccountHeader(user) {
     }
 }
 
+let storedUser = localStorage.getItem("loggedInUser");
+
+if (storedUser) {
+    let user = JSON.parse(storedUser);
+    updateAccountHeader(user);
+} else {
+    updateAccountHeader(null);
+}
+
+logoutButton.addEventListener("click", function () {
+    localStorage.removeItem("loggedIn");
+    localStorage.removeItem("loggedInUser");
+    updateAccountHeader(null);
+    window.location.href = "/";
+});
+
 let loginForm = document.getElementById("login-form");
 
 loginForm.addEventListener("submit", async function (event) {
@@ -299,30 +314,6 @@ loginForm.addEventListener("submit", async function (event) {
             email: email,
             password: password
         })
-<<<<<<< HEAD
-    })
-    .then(function (response) {
-        return response.text().then(function (text) {
-            if (!response.ok) {
-                throw new Error(text);
-            }
-
-            return text;
-        });
-    })
-    .then(function (text) {
-        message.textContent = text;
-
-        localStorage.setItem("loggedIn", "true");
-
-        setTimeout(function () {
-            window.location.href = "/";
-        }, 1000);
-    })
-    .catch(function (error) {
-        message.textContent = error.message;
-=======
->>>>>>> c777abf (changes so that when user logins, they can see their information displayed)
     });
     
     let data = await response.json();

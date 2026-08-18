@@ -327,7 +327,7 @@ app.post("/login", async function (req, res) {
 
     try {
         let result = await pool.query(
-            "SELECT * FROM users WHERE email = $1 AND password = $2",
+            "SELECT id, email, balance FROM users WHERE email = $1 AND password = $2",
             [email, password]
         );
 
@@ -357,7 +357,7 @@ app.post("/signup", async function (req, res) {
         let password = req.body.password;
 
         let result = await pool.query(
-                "INSERT INTO users (email, password) VALUES ($1, $2)",
+                "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email, balance",
                 [email, password]
             );
 
