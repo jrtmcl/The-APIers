@@ -20,6 +20,7 @@
             </div>
         
             <div class="account-buttons">
+            <span id="account-name" style="display: none;"></span>
                 <button id="login">
                     Login
                 </button>
@@ -30,6 +31,10 @@
 
                 <button id="balance" style="display: none;">
                     Balance: 500 credits
+                </button>
+
+                <button id="logout" style="display: none;">
+                    Logout
                 </button>
             </div>
         </nav>
@@ -250,17 +255,40 @@ signupButton.addEventListener("click", function () {
     window.location.href = "/signup";
 });
 
+let accountName = document.getElementById("account-name");
+let balanceButton = document.getElementById("balance");
+let logoutButton = document.getElementById("logout");
+
+function updateAccountHeader(user) {
+    if (user !== null) {
+        loginButton.style.display = "none";
+        signupButton.style.display = "none";
+        accountName.style.display = "inline";
+        balanceButton.style.display = "inline-block";
+        logoutButton.style.display = "inline-block";
+        accountName.textContent = user.email;
+        balanceButton.textContent = "Balance: " + user.balance + " credits";
+    } else {
+        loginButton.style.display = "inline-block";
+        signupButton.style.display = "inline-block";
+        accountName.style.display = "none";
+        balanceButton.style.display = "none";
+        logoutButton.style.display = "none";
+        accountName.textContent = "";
+        balanceButton.textContent = "";
+    }
+}
+
 let loginForm = document.getElementById("login-form");
 
-loginForm.addEventListener("submit", function (event) {
+loginForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
     let email = document.getElementById("login-email").value;
     let password = document.getElementById("login-password").value;
-
     let message = document.getElementById("login-message");
 
-    fetch("/login", {
+    let response = await fetch("/login", {
         method: "POST",
 
         headers: {
@@ -271,6 +299,7 @@ loginForm.addEventListener("submit", function (event) {
             email: email,
             password: password
         })
+<<<<<<< HEAD
     })
     .then(function (response) {
         return response.text().then(function (text) {
@@ -292,19 +321,30 @@ loginForm.addEventListener("submit", function (event) {
     })
     .catch(function (error) {
         message.textContent = error.message;
+=======
+>>>>>>> c777abf (changes so that when user logins, they can see their information displayed)
     });
+    
+    let data = await response.json();
+
+    if (response.ok) {
+        message.textContent = data.message;
+        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
+        updateAccountHeader(data.user);
+        window.location.href = "/";
+    } else {
+        message.textContent = data.error;
+    }
 });
 
 let signupForm = document.getElementById("signup-form");
 
-signupForm.addEventListener("submit", function (event) {
+signupForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
     let email = document.getElementById("signup-email").value;
     let password = document.getElementById("signup-password").value;
-    let confirmPassword =
-        document.getElementById("signup-confirm-password").value;
-
+    let confirmPassword = document.getElementById("signup-confirm-password").value;
     let message = document.getElementById("signup-message");
 
     if (password !== confirmPassword) {
@@ -312,7 +352,7 @@ signupForm.addEventListener("submit", function (event) {
         return;
     }
 
-    fetch("/signup", {
+    let response = await fetch("/signup", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -321,23 +361,17 @@ signupForm.addEventListener("submit", function (event) {
             email: email,
             password: password
         })
-    })
-    .then(function (response) {
-        return response.text().then(function (text) {
-            if (!response.ok) {
-                throw new Error(text);
-            }
-
-            return text;
-        });
-    })
-    .then(function (text) {
-        message.textContent = text;
-        signupForm.reset();
-    })
-    .catch(function (error) {
-        message.textContent = error.message;
     });
+
+    let data = await response.json();
+    if (response.ok) {
+        message.textContent = data.message;
+        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
+        updateAccountHeader(data.user);
+        window.location.href = "/";
+    } else {
+        message.textContent = data.error;
+    }
 });
 
 

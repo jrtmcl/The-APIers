@@ -1,6 +1,6 @@
 DROP DATABASE IF EXISTS accounts;
 CREATE DATABASE accounts;
-\c accounts;
+\c accounts
 
 CREATE TABLE IF NOT EXISTS bets (
     id SERIAL PRIMARY KEY,

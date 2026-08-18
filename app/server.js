@@ -59,7 +59,7 @@ function getTotal(event, periodID) {
 }
 
 app.use(express.static(path.join(__dirname, "public")));
-/*
+
 app.get("/games", async function (req, res) {
     try {
         let now = new Date();
@@ -152,7 +152,7 @@ app.get("/games", async function (req, res) {
         });
     }
 });
-*/
+
 app.get("/teams", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -332,15 +332,18 @@ app.post("/login", async function (req, res) {
         );
 
         if (result.rows.length === 0) {
-            res.status(401).send("Invalid email or password.");
+            res.status(401).json({ error: "Invalid email or password." });
             return;
         }
 
-        res.status(200).send("Login successful");
+        res.status(200).json({
+            message: "Login successful",
+            user: result.rows[0]
+        });
     }
     catch (error) {
         console.error(error);
-        res.status(500).send("Unable to login.");
+        res.status(500).json({ error: "Unable to login." });
     }
 });
 
@@ -349,25 +352,28 @@ app.get("/signup", function (req, res) {
 });
 
 app.post("/signup", async function (req, res) {
-    let email = req.body.email;
-    let password = req.body.password;
-
     try {
-        await pool.query(
-            "INSERT INTO users (email, password) VALUES ($1, $2)",
-            [email, password]
-        );
+        let email = req.body.email;
+        let password = req.body.password;
 
-        res.status(201).send("Account created successfully");
+        let result = await pool.query(
+                "INSERT INTO users (email, password) VALUES ($1, $2)",
+                [email, password]
+            );
+
+            res.status(201).json({
+                message: "Account created successfully",
+                user: result.rows[0]
+            });
     }
     catch (error) {
         console.error(error);
 
         if (error.code === "23505") {
-            res.status(400).send("That email already has an account.");
+            res.status(400).json({ error: "That email already has an account." });
         }
         else {
-            res.status(500).send("Unable to create account.");
+            res.status(500).json({ error: "Unable to create account." });
         }
     }
 });
