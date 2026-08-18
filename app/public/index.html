@@ -28,7 +28,7 @@
                     Sign Up
                 </button>
 
-                <button id="balance">
+                <button id="balance" style="display: none;">
                     Balance: 500 credits
                 </button>
             </div>
@@ -231,6 +231,15 @@ let allPlayers = [];
 
 let loginButton = document.getElementById("login");
 
+let balanceButton = document.getElementById("balance");
+
+if (localStorage.getItem("loggedIn") === "true") {
+    balanceButton.style.display = "inline-block";
+}
+else {
+    balanceButton.style.display = "none";
+}
+
 loginButton.addEventListener("click", function () {
     window.location.href = "/login";
 });
@@ -274,6 +283,8 @@ loginForm.addEventListener("submit", function (event) {
     })
     .then(function (text) {
         message.textContent = text;
+
+        localStorage.setItem("loggedIn", "true");
 
         setTimeout(function () {
             window.location.href = "/";
