@@ -462,6 +462,7 @@ function buildInningsTable(game) {
                 <th>Period</th>
                 <th>${game.awayTeamName}</th>
                 <th>${game.homeTeamName}</th>
+                <th>Tie</th>
                 <th>Over</th>
                 <th>Under</th>
             </tr>
@@ -485,16 +486,34 @@ function buildInningsTable(game) {
     periods.forEach(function (period) {
         let row = document.createElement("tr");
 
-        let total = period.data.total;
-        let totalLine = total && total.line !== null && total.line !== undefined ? total.line : "";
+        let result = period.data.result;
 
-        row.innerHTML = `
-            <td>${period.label}</td>
-            <td class="odds-cell">${oddsButtonHtml(game.awayTeamName, period.data.moneyline.away)}</td>
-            <td class="odds-cell">${oddsButtonHtml(game.homeTeamName, period.data.moneyline.home)}</td>
-            <td class="odds-cell">${oddsButtonHtml("Over " + totalLine, total.overOdds)}</td>
-            <td class="odds-cell">${oddsButtonHtml("Under " + totalLine, total.underOdds)}</td>
-        `;
+        if (result && result.ended) {
+            let awayRuns = result.awayRuns !== null && result.awayRuns !== undefined ? result.awayRuns : "?";
+            let homeRuns = result.homeRuns !== null && result.homeRuns !== undefined ? result.homeRuns : "?";
+
+            let resultCell = document.createElement("td");
+            resultCell.colSpan = 5;
+            resultCell.className = "inning-result-cell";
+            resultCell.textContent =
+                "Final: " + game.awayTeamName + " " + awayRuns +
+                " - " + game.homeTeamName + " " + homeRuns;
+
+            row.innerHTML = `<td>${period.label}</td>`;
+            row.appendChild(resultCell);
+        } else {
+            let total = period.data.total;
+            let totalLine = total && total.line !== null && total.line !== undefined ? total.line : "";
+
+            row.innerHTML = `
+                <td>${period.label}</td>
+                <td class="odds-cell">${oddsButtonHtml(game.awayTeamName, period.data.moneyline.away)}</td>
+                <td class="odds-cell">${oddsButtonHtml(game.homeTeamName, period.data.moneyline.home)}</td>
+                <td class="odds-cell">${oddsButtonHtml("Tie", period.data.moneyline.tie)}</td>
+                <td class="odds-cell">${oddsButtonHtml("Over " + totalLine, total.overOdds)}</td>
+                <td class="odds-cell">${oddsButtonHtml("Under " + totalLine, total.underOdds)}</td>
+            `;
+        }
 
         tbody.appendChild(row);
     });

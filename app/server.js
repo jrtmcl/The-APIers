@@ -30,6 +30,7 @@ function getOdds(event, statID, statEntityID, periodID, betTypeID, sideID) {
 
     return allOdds.find(function (odd) {
         return (
+            odd.statEntityID === statEntityID &&
             odd.periodID === periodID &&
             odd.betTypeID === betTypeID &&
             odd.sideID === sideID
@@ -38,8 +39,8 @@ function getOdds(event, statID, statEntityID, periodID, betTypeID, sideID) {
 }
 
 function getMoneyline(event, periodID) {
-    let away = getOdds(event, "points", "away", periodID, "ml", "away");
-    let home = getOdds(event, "points", "home", periodID, "ml", "home");
+    let away = getOdds(event, "away", periodID, "ml", "away");
+    let home = getOdds(event, "home", periodID, "ml", "home");
 
     return {
         away: away ? away.bookOdds : "N/A",
@@ -47,14 +48,50 @@ function getMoneyline(event, periodID) {
     };
 }
 
+function getMoneylineThreeWay(event, periodID) {
+    let away = getOdds(event, "away", periodID, "ml3way", "away");
+    let home = getOdds(event, "home", periodID, "ml3way", "home");
+    let tie = getOdds(event, "all", periodID, "ml3way", "draw");
+
+    return {
+        away: away ? away.bookOdds : "N/A",
+        home: home ? home.bookOdds : "N/A",
+        tie: tie ? tie.bookOdds : "N/A",
+    };
+}
+
 function getTotal(event, periodID) {
-    let over = getOdds(event, "points", "all", periodID, "ou", "over");
-    let under = getOdds(event, "points", "all", periodID, "ou", "under");
+    let over = getOdds(event, "all", periodID, "ou", "over");
+    let under = getOdds(event, "all", periodID, "ou", "under");
 
     return {
         line: over ? over.bookOverUnder : null,
         overOdds: over ? over.bookOdds : "N/A",
         underOdds: under ? under.bookOdds : "N/A",
+    };
+}
+
+function getTeamPeriodRuns(event, periodID, teamSide) {
+    let odd = getOdds(event, teamSide, periodID, "ou", "over");
+
+    if (!odd) {
+        return { ended: false, runs: null };
+    }
+
+    return {
+        ended: odd.ended === true,
+        runs: odd.ended ? odd.score : null,
+    };
+}
+
+function getPeriodResult(event, periodID) {
+    let away = getTeamPeriodRuns(event, periodID, "away");
+    let home = getTeamPeriodRuns(event, periodID, "home");
+
+    return {
+        ended: away.ended || home.ended,
+        awayRuns: away.runs,
+        homeRuns: home.runs,
     };
 }
 
@@ -70,14 +107,6 @@ app.get("/games", async function (req, res) {
         let startOfTomorrow = new Date(startOfToday);
         startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
 
-        let periods = ["game", "1h", "1i", "2i", "3i", "4i", "5i", "6i", "7i", "8i", "9i"];
-
-        let oddIDs = [];
-        periods.forEach(function (period) {
-            oddIDs.push("points-away-" + period + "-ml-away");
-            oddIDs.push("points-all-" + period + "-ou-over");
-        });
-
         let options = {
             method: "GET",
             url: env.api_url,
@@ -88,8 +117,6 @@ app.get("/games", async function (req, res) {
                 startsBefore: startOfTomorrow.toISOString(),
                 finalized: false,
                 oddsAvailable: true,
-                includeOpposingOdds: true,
-                oddIDs: oddIDs.join(","),
                 limit: 20,
             },
         };
@@ -103,8 +130,9 @@ app.get("/games", async function (req, res) {
 
                 return {
                     inning: inningNumber,
-                    moneyline: getMoneyline(event, periodID),
+                    moneyline: getMoneylineThreeWay(event, periodID),
                     total: getTotal(event, periodID),
+                    result: getPeriodResult(event, periodID),
                 };
             });
 
@@ -126,6 +154,7 @@ app.get("/games", async function (req, res) {
                 firstFiveInnings: {
                     moneyline: getMoneyline(event, "1h"),
                     total: getTotal(event, "1h"),
+                    result: getPeriodResult(event, "1h"),
                 },
 
                 innings: innings,
