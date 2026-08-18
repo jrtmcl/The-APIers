@@ -4,6 +4,9 @@ let path = require("path");
 
 let app = express();
 
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
 let hostname = "localhost";
 let port = 3000;
 let season = 2026;
@@ -11,6 +14,16 @@ let MLB_TEAMS_URL =
     "https://statsapi.mlb.com/api/v1/teams?sportId=1&season=" + season;
 
 let env = require("../env.json");
+
+let pg = require("pg");
+
+let pool = new pg.Pool({
+    user: "postgres",
+    host: "localhost",
+    database: "accounts",
+    password: "",
+    port: 5432
+});
 
 function getOdds(event, statID, statEntityID, periodID, betTypeID, sideID) {
     let allOdds = Object.values(event.odds || {});
@@ -308,8 +321,55 @@ app.get("/login", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+app.post("/login", async function (req, res) {
+    let email = req.body.email;
+    let password = req.body.password;
+
+    try {
+        let result = await pool.query(
+            "SELECT * FROM users WHERE email = $1 AND password = $2",
+            [email, password]
+        );
+
+        if (result.rows.length === 0) {
+            res.status(401).send("Invalid email or password.");
+            return;
+        }
+
+        res.status(200).send("Login successful");
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).send("Unable to login.");
+    }
+});
+
 app.get("/signup", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.post("/signup", async function (req, res) {
+    let email = req.body.email;
+    let password = req.body.password;
+
+    try {
+        await pool.query(
+            "INSERT INTO users (email, password) VALUES ($1, $2)",
+            [email, password]
+        );
+
+        res.status(201).send("Account created successfully");
+    }
+    catch (error) {
+        console.error(error);
+
+        if (error.code === "23505") {
+            res.status(400).send("That email already has an account.");
+        }
+        else {
+            res.status(500).send("Unable to create account.");
+        }
+    }
 });
 
 

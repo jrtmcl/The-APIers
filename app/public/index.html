@@ -246,8 +246,42 @@ let loginForm = document.getElementById("login-form");
 loginForm.addEventListener("submit", function (event) {
     event.preventDefault();
 
-    document.getElementById("login-message").textContent =
-        "Login functionality will be added soon.";
+    let email = document.getElementById("login-email").value;
+    let password = document.getElementById("login-password").value;
+
+    let message = document.getElementById("login-message");
+
+    fetch("/login", {
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    })
+    .then(function (response) {
+        return response.text().then(function (text) {
+            if (!response.ok) {
+                throw new Error(text);
+            }
+
+            return text;
+        });
+    })
+    .then(function (text) {
+        message.textContent = text;
+
+        setTimeout(function () {
+            window.location.href = "/";
+        }, 1000);
+    })
+    .catch(function (error) {
+        message.textContent = error.message;
+    });
 });
 
 let signupForm = document.getElementById("signup-form");
@@ -255,8 +289,44 @@ let signupForm = document.getElementById("signup-form");
 signupForm.addEventListener("submit", function (event) {
     event.preventDefault();
 
-    document.getElementById("signup-message").textContent =
-        "Sign up functionality will be added soon.";
+    let email = document.getElementById("signup-email").value;
+    let password = document.getElementById("signup-password").value;
+    let confirmPassword =
+        document.getElementById("signup-confirm-password").value;
+
+    let message = document.getElementById("signup-message");
+
+    if (password !== confirmPassword) {
+        message.textContent = "Passwords do not match.";
+        return;
+    }
+
+    fetch("/signup", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    })
+    .then(function (response) {
+        return response.text().then(function (text) {
+            if (!response.ok) {
+                throw new Error(text);
+            }
+
+            return text;
+        });
+    })
+    .then(function (text) {
+        message.textContent = text;
+        signupForm.reset();
+    })
+    .catch(function (error) {
+        message.textContent = error.message;
+    });
 });
 
 
