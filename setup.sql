@@ -1,8 +1,6 @@
-SELECT 'CREATE DATABASE accounts'
-WHERE NOT EXISTS 
-    (SELECT FROM pg_database WHERE datname = 'accounts')\gexec
-
-\connect accounts
+DROP DATABASE IF EXISTS accounts;
+CREATE DATABASE accounts;
+\c accounts;
 
 CREATE TABLE IF NOT EXISTS bets (
     id SERIAL PRIMARY KEY,
@@ -16,8 +14,9 @@ CREATE TABLE IF NOT EXISTS bets (
     teamToWin VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    balance INT NOT NULL DEFAULT 500
 );
