@@ -65,6 +65,8 @@
                 <th>Home Team</th>
                 <th>Away Moneyline</th>
                 <th>Home Moneyline</th>
+                <th>Total</th>
+                <th>Innings</th>
             </tr>
         </thead>
 
@@ -316,27 +318,7 @@ fetch("/games")
         message.textContent = "";
 
         games.forEach(function (game) {
-            let row = document.createElement("tr");
-
-            row.innerHTML = `
-                <td>${new Date(game.date).toLocaleString()}</td>
-                <td>${game.awayTeamName}</td>
-                <td>${game.homeTeamName}</td>
-
-                <td class="odds-cell">
-                <button type="button" class="odds-button">
-                    ${formatOdds(game.awayOdds)}
-                </button>
-                </td>
-
-                <td class="odds-cell">
-                <button type="button" class="odds-button">
-                    ${formatOdds(game.homeOdds)}
-                </button>
-                </td>
-            `;
-
-            tbody.appendChild(row);
+            renderGameRow(tbody, game);
         });
     })
     .catch(function (error) {
@@ -345,6 +327,120 @@ fetch("/games")
         document.getElementById("games-message").textContent =
             "Something went wrong: " + error.message;
     });
+
+function renderGameRow(tbody, game) {
+    let mainRow = document.createElement("tr");
+
+    let total = game.fullGame.total;
+    let totalLine = total && total.line !== null && total.line !== undefined ? total.line : "";
+
+    mainRow.innerHTML = `
+        <td>${new Date(game.date).toLocaleString()}</td>
+        <td>${game.awayTeamName}</td>
+        <td>${game.homeTeamName}</td>
+
+        <td class="odds-cell">
+            ${oddsButtonHtml(game.awayTeamName, game.fullGame.moneyline.away)}
+        </td>
+
+        <td class="odds-cell">
+            ${oddsButtonHtml(game.homeTeamName, game.fullGame.moneyline.home)}
+        </td>
+
+        <td class="odds-cell">
+            ${oddsButtonHtml("Over " + totalLine, total.overOdds)}
+            ${oddsButtonHtml("Under " + totalLine, total.underOdds)}
+        </td>
+
+        <td>
+            <button type="button" class="innings-toggle">
+                Show Innings
+            </button>
+        </td>
+    `;
+
+    tbody.appendChild(mainRow);
+
+    let detailsRow = document.createElement("tr");
+    detailsRow.className = "innings-details-row";
+    detailsRow.style.display = "none";
+
+    let detailsCell = document.createElement("td");
+    detailsCell.colSpan = 7;
+    detailsCell.appendChild(buildInningsTable(game));
+
+    detailsRow.appendChild(detailsCell);
+    tbody.appendChild(detailsRow);
+
+    let toggleButton = mainRow.querySelector(".innings-toggle");
+
+    toggleButton.addEventListener("click", function () {
+        let isHidden = detailsRow.style.display === "none";
+
+        detailsRow.style.display = isHidden ? "table-row" : "none";
+        toggleButton.textContent = isHidden ? "Hide Innings" : "Show Innings";
+    });
+}
+
+function buildInningsTable(game) {
+    let table = document.createElement("table");
+    table.setAttribute("border", "1");
+
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>${game.awayTeamName}</th>
+                <th>${game.homeTeamName}</th>
+                <th>Over</th>
+                <th>Under</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `;
+
+    let tbody = table.querySelector("tbody");
+
+    let periods = [
+        { label: "First 5 Innings", data: game.firstFiveInnings },
+    ].concat(
+        game.innings.map(function (inning) {
+            return {
+                label: "Inning " + inning.inning,
+                data: inning,
+            };
+        })
+    );
+
+    periods.forEach(function (period) {
+        let row = document.createElement("tr");
+
+        let total = period.data.total;
+        let totalLine = total && total.line !== null && total.line !== undefined ? total.line : "";
+
+        row.innerHTML = `
+            <td>${period.label}</td>
+            <td class="odds-cell">${oddsButtonHtml(game.awayTeamName, period.data.moneyline.away)}</td>
+            <td class="odds-cell">${oddsButtonHtml(game.homeTeamName, period.data.moneyline.home)}</td>
+            <td class="odds-cell">${oddsButtonHtml("Over " + totalLine, total.overOdds)}</td>
+            <td class="odds-cell">${oddsButtonHtml("Under " + totalLine, total.underOdds)}</td>
+        `;
+
+        tbody.appendChild(row);
+    });
+
+    return table;
+}
+
+function oddsButtonHtml(label, odds) {
+    let isAvailable = odds !== null && odds !== undefined && odds !== "N/A";
+
+    return `
+        <button type="button" class="odds-button" ${isAvailable ? "" : "disabled"}>
+            ${label} ${formatOdds(odds)}
+        </button>
+    `;
+}
 
 function showView(viewId) {
 let views = [

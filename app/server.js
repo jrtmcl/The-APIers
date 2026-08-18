@@ -12,6 +12,39 @@ let MLB_TEAMS_URL =
 
 let env = require("../env.json");
 
+function getOdds(event, statID, statEntityID, periodID, betTypeID, sideID) {
+    let allOdds = Object.values(event.odds || {});
+
+    return allOdds.find(function (odd) {
+        return (
+            odd.periodID === periodID &&
+            odd.betTypeID === betTypeID &&
+            odd.sideID === sideID
+        );
+    });
+}
+
+function getMoneyline(event, periodID) {
+    let away = getOdds(event, "points", "away", periodID, "ml", "away");
+    let home = getOdds(event, "points", "home", periodID, "ml", "home");
+
+    return {
+        away: away ? away.bookOdds : "N/A",
+        home: home ? home.bookOdds : "N/A",
+    };
+}
+
+function getTotal(event, periodID) {
+    let over = getOdds(event, "points", "all", periodID, "ou", "over");
+    let under = getOdds(event, "points", "all", periodID, "ou", "under");
+
+    return {
+        line: over ? over.bookOverUnder : null,
+        overOdds: over ? over.bookOdds : "N/A",
+        underOdds: under ? under.bookOdds : "N/A",
+    };
+}
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/games", async function (req, res) {
@@ -24,6 +57,14 @@ app.get("/games", async function (req, res) {
         let startOfTomorrow = new Date(startOfToday);
         startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
 
+        let periods = ["game", "1h", "1i", "2i", "3i", "4i", "5i", "6i", "7i", "8i", "9i"];
+
+        let oddIDs = [];
+        periods.forEach(function (period) {
+            oddIDs.push("points-away-" + period + "-ml-away");
+            oddIDs.push("points-all-" + period + "-ou-over");
+        });
+
         let options = {
             method: "GET",
             url: env.api_url,
@@ -34,31 +75,24 @@ app.get("/games", async function (req, res) {
                 startsBefore: startOfTomorrow.toISOString(),
                 finalized: false,
                 oddsAvailable: true,
-                limit: 20
-            }
+                includeOpposingOdds: true,
+                oddIDs: oddIDs.join(","),
+                limit: 20,
+            },
         };
 
         let response = await axios.request(options);
-
         let events = response.data.data;
 
         let games = events.map(function (event) {
-            let allOdds = Object.values(event.odds || {});
+            let innings = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (inningNumber) {
+                let periodID = inningNumber + "i";
 
-            let awayMoneyline = allOdds.find(function (odd) {
-                return (
-                    odd.betTypeID === "ml" &&
-                    odd.periodID === "game" &&
-                    odd.sideID === "away"
-                );
-            });
-
-            let homeMoneyline = allOdds.find(function (odd) {
-                return (
-                    odd.betTypeID === "ml" &&
-                    odd.periodID === "game" &&
-                    odd.sideID === "home"
-                );
+                return {
+                    inning: inningNumber,
+                    moneyline: getMoneyline(event, periodID),
+                    total: getTotal(event, periodID),
+                };
             });
 
             return {
@@ -71,19 +105,22 @@ app.get("/games", async function (req, res) {
                 awayTeamID: event.teams.away.teamID,
                 homeTeamID: event.teams.home.teamID,
 
-                // if/else to check if odds are available, if not, return "N/A"
-                awayOdds: awayMoneyline
-                    ? awayMoneyline.bookOdds
-                    : "N/A",
+                fullGame: {
+                    moneyline: getMoneyline(event, "game"),
+                    total: getTotal(event, "game"),
+                },
 
-                homeOdds: homeMoneyline
-                    ? homeMoneyline.bookOdds
-                    : "N/A"
+                firstFiveInnings: {
+                    moneyline: getMoneyline(event, "1h"),
+                    total: getTotal(event, "1h"),
+                },
+
+                innings: innings,
             };
         });
 
         console.log("Games being sent to browser:");
-        console.log(games);
+        console.log(JSON.stringify(games, null, 2));
 
         res.json(games);
     }
