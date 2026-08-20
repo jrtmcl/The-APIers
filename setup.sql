@@ -4,14 +4,16 @@ CREATE DATABASE accounts;
 
 CREATE TABLE IF NOT EXISTS bets (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    betAmount INT NOT NULL,
-    potentialWinnings INT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    eventID VARCHAR(255) NOT NULL,
+    betAmount DECIMAL(10,2) NOT NULL,
+    potentialWinnings DECIMAL(10,2) NOT NULL,
     date VARCHAR(255) NOT NULL,
     homeTeam VARCHAR(255) NOT NULL,
     awayTeam VARCHAR(255) NOT NULL,
     odds VARCHAR(255) NOT NULL,
-    teamToWin VARCHAR(255) NOT NULL
+    teamToWin VARCHAR(255) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending'
 );
 
 CREATE TABLE users (

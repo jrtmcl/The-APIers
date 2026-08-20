@@ -1,4 +1,4 @@
-function calculateProfit(betAmount, americanOdds) {
+function calculateWinnings(betAmount, americanOdds) {
     if (americanOdds > 0) {
         return betAmount * (americanOdds / 100);
     } else {
@@ -11,6 +11,6 @@ function calculatePayout(betAmount, americanOdds) {
 }
 
 module.exports = {
-    calculateProfit,
+    calculateWinnings,
     calculatePayout
 };

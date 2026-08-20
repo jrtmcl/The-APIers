@@ -314,6 +314,28 @@ loginForm.addEventListener("submit", async function (event) {
             email: email,
             password: password
         })
+    })
+    .then(function (response) {
+        return response.text().then(function (text) {
+            if (!response.ok) {
+                throw new Error(text);
+            }
+
+            return text;
+        });
+    })
+    .then(function (text) {
+        message.textContent = text;
+
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("email", email);
+
+        setTimeout(function () {
+            window.location.href = "/";
+        }, 1000);
+    })
+    .catch(function (error) {
+        message.textContent = error.message;
     });
     
     let data = await response.json();
@@ -446,16 +468,16 @@ function renderGameRow(tbody, game) {
         <td>${game.homeTeamName}</td>
 
         <td class="odds-cell">
-            ${oddsButtonHtml(game.awayTeamName, game.fullGame.moneyline.away)}
+            ${oddsButtonHtml(game.awayTeamName, game.fullGame.moneyline.away, game)}
         </td>
 
         <td class="odds-cell">
-            ${oddsButtonHtml(game.homeTeamName, game.fullGame.moneyline.home)}
+            ${oddsButtonHtml(game.homeTeamName, game.fullGame.moneyline.home, game)}
         </td>
 
         <td class="odds-cell">
-            ${oddsButtonHtml("Over " + totalLine, total.overOdds)}
-            ${oddsButtonHtml("Under " + totalLine, total.underOdds)}
+            ${oddsButtonHtml("Over " + totalLine, total.overOdds, game)}
+            ${oddsButtonHtml("Under " + totalLine, total.underOdds, game)}
         </td>
 
         <td>
@@ -466,6 +488,12 @@ function renderGameRow(tbody, game) {
     `;
 
     tbody.appendChild(mainRow);
+
+    let oddsButtons = mainRow.querySelectorAll(".odds-button");
+
+        oddsButtons.forEach(function (button) {
+        button.addEventListener("click", placeBet);
+    });
 
     let detailsRow = document.createElement("tr");
     detailsRow.className = "innings-details-row";
@@ -486,6 +514,46 @@ function renderGameRow(tbody, game) {
         detailsRow.style.display = isHidden ? "table-row" : "none";
         toggleButton.textContent = isHidden ? "Hide Innings" : "Show Innings";
     });
+}
+
+function placeBet(event) {
+    if (localStorage.getItem("loggedIn") !== "true") {
+        alert("You must be logged in to place a bet.");
+        return;
+    }
+
+    let button = event.currentTarget;
+
+    let team = button.dataset.team;
+    let odds = Number(button.dataset.odds);
+
+    let wager = prompt(
+        "How many credits would you like to bet on " +
+        team +
+        " at " +
+        formatOdds(odds) +
+        "?"
+    );
+
+    if (wager === null) {
+        return;
+    }
+
+    wager = Number(wager);
+
+    if (isNaN(wager) || wager <= 0) {
+        alert("Please enter a valid wager amount.");
+        return;
+    }
+
+    alert(
+        "You are betting " +
+        wager +
+        " credits on " +
+        team +
+        " at " +
+        formatOdds(odds)
+    );
 }
 
 function buildInningsTable(game) {
@@ -525,12 +593,12 @@ function buildInningsTable(game) {
         let totalLine = total && total.line !== null && total.line !== undefined ? total.line : "";
 
         row.innerHTML = `
-            <td>${period.label}</td>
-            <td class="odds-cell">${oddsButtonHtml(game.awayTeamName, period.data.moneyline.away)}</td>
-            <td class="odds-cell">${oddsButtonHtml(game.homeTeamName, period.data.moneyline.home)}</td>
-            <td class="odds-cell">${oddsButtonHtml("Over " + totalLine, total.overOdds)}</td>
-            <td class="odds-cell">${oddsButtonHtml("Under " + totalLine, total.underOdds)}</td>
-        `;
+    <td>${period.label}</td>
+    <td class="odds-cell">${oddsButtonHtml(game.awayTeamName, period.data.moneyline.away, game)}</td>
+    <td class="odds-cell">${oddsButtonHtml(game.homeTeamName, period.data.moneyline.home, game)}</td>
+    <td class="odds-cell">${oddsButtonHtml("Over " + totalLine, total.overOdds, game)}</td>
+    <td class="odds-cell">${oddsButtonHtml("Under " + totalLine, total.underOdds, game)}</td>
+`;
 
         tbody.appendChild(row);
     });
@@ -538,11 +606,24 @@ function buildInningsTable(game) {
     return table;
 }
 
-function oddsButtonHtml(label, odds) {
-    let isAvailable = odds !== null && odds !== undefined && odds !== "N/A";
+function oddsButtonHtml(label, odds, game) {
+    let isAvailable =
+        odds !== null &&
+        odds !== undefined &&
+        odds !== "N/A";
 
     return `
-        <button type="button" class="odds-button" ${isAvailable ? "" : "disabled"}>
+        <button
+            type="button"
+            class="odds-button"
+            ${isAvailable ? "" : "disabled"}
+            data-team="${label}"
+            data-odds="${odds}"
+            data-event-id="${game.eventID}"
+            data-home-team="${game.homeTeamName}"
+            data-away-team="${game.awayTeamName}"
+            data-date="${game.date}"
+        >
             ${label} ${formatOdds(odds)}
         </button>
     `;
