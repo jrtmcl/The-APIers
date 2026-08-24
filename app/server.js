@@ -1,7 +1,7 @@
 let express = require("express");
 let axios = require("axios");
 let path = require("path");
-let bycript = require("bcrypt");
+let bycrypt = require("bcrypt");
 
 let app = express();
 
@@ -335,7 +335,7 @@ app.post("/login", async function (req, res) {
         }
 
         let user = result.rows[0];
-        let passwordMatches = await bycrypt.compare(password, user.password);
+        let passwordMatches = await bcrcrypt.compare(password, user.password);
 
         if (!passwordMatches) {
             res.status(401).json({ error: "Invalid email or password." });
@@ -361,7 +361,7 @@ app.post("/signup", async function (req, res) {
     try {
         let email = req.body.email;
         let password = req.body.password;
-        let hashedPassword = await bycript.hash(password, 10);
+        let hashedPassword = await bycrypt.hash(password, 10);
 
         let result = await pool.query(
                 "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email, balance",
