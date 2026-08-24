@@ -7,22 +7,20 @@ let app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-let hostname = "localhost";
-let port = 3000;
+let hostname = "0.0.0.0";
+let port = process.env.PORT || 3000;
 let season = 2026;
 let MLB_TEAMS_URL =
     "https://statsapi.mlb.com/api/v1/teams?sportId=1&season=" + season;
 
-let env = require("../env.json");
+let env = {
+    api_key: process.env.API_KEY, api_url: process.env.API_URL
+};
 
 let pg = require("pg");
 
 let pool = new pg.Pool({
-    user: "postgres",
-    host: "localhost",
-    database: "accounts",
-    password: "",
-    port: 5432
+    connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }
 });
 
 function getOdds(event, statID, statEntityID, periodID, betTypeID, sideID) {
