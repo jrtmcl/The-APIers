@@ -335,7 +335,7 @@ app.post("/login", async function (req, res) {
         }
 
         let user = result.rows[0];
-        let passwordMatches = await bcrcrypt.compare(password, user.password);
+        let passwordMatches = await bycrypt.compare(password, user.password);
 
         if (!passwordMatches) {
             res.status(401).json({ error: "Invalid email or password." });
