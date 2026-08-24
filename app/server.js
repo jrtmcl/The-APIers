@@ -1,6 +1,7 @@
 let express = require("express");
 let axios = require("axios");
 let path = require("path");
+let bycript = require("bcrypt");
 
 let app = express();
 
@@ -325,11 +326,19 @@ app.post("/login", async function (req, res) {
 
     try {
         let result = await pool.query(
-            "SELECT id, email, balance FROM users WHERE email = $1 AND password = $2",
+            "SELECT id, email, balance, password FROM users WHERE email = $1 AND password = $2",
             [email, password]
         );
 
         if (result.rows.length === 0) {
+            res.status(401).json({ error: "Invalid email or password." });
+            return;
+        }
+
+        let user = result.rows[0];
+        let passwordMatches = await bycript.compare(password, user.password);
+
+        if (!passwordMatches) {
             res.status(401).json({ error: "Invalid email or password." });
             return;
         }
@@ -353,10 +362,11 @@ app.post("/signup", async function (req, res) {
     try {
         let email = req.body.email;
         let password = req.body.password;
+        let hashedPassword = await bycript.hash(password, 10);
 
         let result = await pool.query(
                 "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email, balance",
-                [email, password]
+                [email, hashedPassword]
             );
 
             res.status(201).json({
