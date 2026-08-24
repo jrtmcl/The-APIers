@@ -325,8 +325,8 @@ app.post("/login", async function (req, res) {
 
     try {
         let result = await pool.query(
-            "SELECT id, email, balance, password FROM users WHERE email = $1 AND password = $2",
-            [email, password]
+            "SELECT id, email, balance, password FROM users WHERE email = $1",
+            [email]
         );
 
         if (result.rows.length === 0) {
@@ -335,7 +335,7 @@ app.post("/login", async function (req, res) {
         }
 
         let user = result.rows[0];
-        let passwordMatches = await bycript.compare(password, user.password);
+        let passwordMatches = await bycrypt.compare(password, user.password);
 
         if (!passwordMatches) {
             res.status(401).json({ error: "Invalid email or password." });
