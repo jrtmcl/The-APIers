@@ -85,7 +85,6 @@ app.get("/games", async function (req, res) {
                 leagueID: "MLB",
                 startsAfter: startOfToday.toISOString(),
                 startsBefore: startOfTomorrow.toISOString(),
-                finalized: false,
                 oddsAvailable: true,
                 includeOpposingOdds: true,
                 oddIDs: oddIDs.join(","),
