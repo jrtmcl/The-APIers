@@ -57,17 +57,24 @@ function getTotal(event, periodID) {
     };
 }
 
+function getEasternDateRange() {
+    let startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    let startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+    return {
+        startOfToday, startOfTomorrow
+    };
+}
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/games", async function (req, res) {
     try {
-        let now = new Date();
-
-        let startOfToday = new Date(now);
-        startOfToday.setHours(0, 0, 0, 0);
-
-        let startOfTomorrow = new Date(startOfToday);
-        startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+        let { startOfToday, startOfTomorrow } = getEasternDateRange();
+        console.log("Date range:", startOfToday.toISOString(), "to", startOfTomorrow.toISOString());
 
         let periods = ["game", "1h", "1i", "2i", "3i", "4i", "5i", "6i", "7i", "8i", "9i"];
 
