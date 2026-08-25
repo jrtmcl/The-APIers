@@ -790,19 +790,29 @@ function gradeBet(event, bet) {
     }
 
     if (bet.bettype === "ou") {
-        if (result.totalRuns === null || bet.line === null || bet.line === undefined) {
+        if (
+            result.totalRuns === null ||
+            bet.line === null ||
+            bet.line === undefined
+        ) {
             return null;
         }
-
+    
         let line = Number(bet.line);
-
+    
         if (result.totalRuns === line) {
             return "push";
         }
-
-        let actualSide = result.totalRuns > line ? "Over" : "Under";
-
-        return bet.teamtowin === actualSide ? "win" : "loss";
+    
+        let actualSide =
+            result.totalRuns > line ? "Over" : "Under";
+    
+        let pickedSide =
+            String(bet.teamtowin).split(" ")[0];
+    
+        return pickedSide === actualSide
+            ? "win"
+            : "loss";
     }
 
     return null;
@@ -897,6 +907,28 @@ app.post("/api/bets", async function (req, res) {
         res.status(500).json({ error: "Failed to place bet." });
     } finally {
         client.release();
+    }
+});
+
+app.get("/api/bets/:email", async function (req, res) {
+    try {
+        let email = req.params.email;
+
+        let result = await pool.query(
+            `SELECT *
+             FROM bets
+             WHERE email = $1
+             ORDER BY id DESC`,
+            [email]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            error: "Unable to load bets."
+        });
     }
 });
 

@@ -288,6 +288,52 @@
 
 </section>
 
+<section id="my-bets-view" style="display: none;">
+
+    <h2>My Bets</h2>
+
+    <p id="bets-message"></p>
+
+    <div class="bets-summary">
+        <div>
+            <strong id="pending-count">0</strong>
+            <span>Pending</span>
+        </div>
+
+        <div>
+            <strong id="won-count">0</strong>
+            <span>Won</span>
+        </div>
+
+        <div>
+            <strong id="lost-count">0</strong>
+            <span>Lost</span>
+        </div>
+    </div>
+
+
+    <h3>Pending Bets</h3>
+    <div
+        id="pending-bets"
+        class="bets-container">
+    </div>
+
+
+    <h3>Won Bets</h3>
+    <div
+        id="won-bets"
+        class="bets-container">
+    </div>
+
+
+    <h3>Lost Bets</h3>
+    <div
+        id="lost-bets"
+        class="bets-container">
+    </div>
+
+</section>
+
 
 </main>
 
@@ -502,8 +548,10 @@ else if (path === "/account") {
     showView("account-view");
     loadAccount();
 }
-
-
+else if (path === "/my-bets") {
+    showView("my-bets-view");
+    loadBets();
+}
 else {
     showView("home-view");
 }
@@ -776,6 +824,7 @@ function showView(viewId) {
         "home-view",
         "teams-view",
         "players-view",
+        "my-bets-view",
         "how-to-view",
         "login-view",
         "signup-view",
@@ -1321,6 +1370,183 @@ withdrawButton.addEventListener(
         });
     }
 );
+
+async function loadBets() {
+
+let storedUser = JSON.parse(localStorage.getItem("loggedInUser") ||"null");
+
+if (!storedUser || !storedUser.email) {
+    window.location.href = "/login";
+    return;
+}
+
+let message = document.getElementById("bets-message");
+
+message.textContent = "Loading bets...";
+
+try {
+
+    let response = await fetch("/api/bets/" + encodeURIComponent(storedUser.email));
+
+    if (!response.ok) {
+        throw new Error(
+            "Unable to load bets."
+        );
+    }
+
+    let bets = await response.json();
+
+    displayBets(bets);
+
+    message.textContent = "";
+
+    // Refresh balance because a bet may
+    // have just been settled
+    let userResponse = await fetch("/api/users/" + encodeURIComponent(storedUser.email));
+
+    if (userResponse.ok) {
+        let user = await userResponse.json();
+
+        storedUser.balance = user.balance;
+
+        localStorage.setItem("loggedInUser", JSON.stringify(storedUser));
+
+        updateAccountHeader(storedUser);
+    }
+
+}
+catch (error) {
+
+    console.error(error);
+
+    message.textContent =
+        error.message;
+}
+}
+
+function displayBets(bets) {
+
+let pendingContainer = document.getElementById("pending-bets");
+
+let wonContainer = document.getElementById("won-bets");
+
+let lostContainer = document.getElementById("lost-bets");
+
+pendingContainer.innerHTML = "";
+wonContainer.innerHTML = "";
+lostContainer.innerHTML = "";
+
+
+let pending = bets.filter(function (bet) {
+    return bet.status === "pending";
+});
+
+let won = bets.filter(function (bet) {
+    return bet.status === "won";
+});
+
+let lost = bets.filter(function (bet) {
+    return (
+        bet.status === "lost" ||
+        bet.status === "push"
+    );
+});
+
+document.getElementById("pending-count").textContent = pending.length;
+
+document.getElementById("won-count").textContent = won.length;
+
+document.getElementById("lost-count").textContent = lost.length;
+
+
+renderBetGroup(pendingContainer, pending, "No pending bets.");
+
+renderBetGroup(wonContainer, won, "No winning bets yet.");
+
+renderBetGroup(lostContainer, lost, "No losing bets.");
+}
+
+function renderBetGroup(container, bets, emptyMessage) {
+
+    if (bets.length === 0) {
+
+        let message = document.createElement("p");
+
+        message.textContent = emptyMessage;
+
+        container.appendChild(message);
+
+        return;
+    }
+
+
+    bets.forEach(function (bet) {
+
+        let card = document.createElement("div");
+
+        card.className = "bet-card " + bet.status;
+
+        let wager = Number(bet.betamount).toFixed(2);
+        let payout = Number(bet.potentialwinnings).toFixed(2);
+        let profit = (Number(bet.potentialwinnings) - Number(bet.betamount)).toFixed(2);
+
+        card.innerHTML = `
+            <div class="bet-card-header">
+
+                <strong>
+                    ${bet.awayteam}
+                    @
+                    ${bet.hometeam}
+                </strong>
+
+                <span class="bet-status">
+                    ${bet.status.toUpperCase()}
+                </span>
+
+            </div>
+
+            <p>
+                <strong>Pick:</strong>
+                ${bet.teamtowin}
+            </p>
+
+            <p>
+                <strong>Odds:</strong>
+                ${formatOdds(bet.odds)}
+            </p>
+
+            <p>
+                <strong>Wager:</strong>
+                $${wager}
+            </p>
+
+            <p>
+                <strong>Potential Payout:</strong>
+                $${payout}
+            </p>
+
+            ${
+                bet.status === "won"
+                ?
+                `<p>
+                    <strong>Profit:</strong>
+                    +$${profit}
+                 </p>`
+                :
+                ""
+            }
+
+            <p class="bet-date">
+                ${new Date(
+                    bet.date
+                ).toLocaleString()}
+            </p>
+
+        `;
+
+        container.appendChild(card);
+    });
+}
 
 // Transaction History
 
