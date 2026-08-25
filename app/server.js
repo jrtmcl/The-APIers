@@ -1036,7 +1036,7 @@ setInterval(function () {
             error.response ? error.response.data : error.message
         );
     });
-}, 60000);
+}, 21600000);
 
 app.listen(port, hostname, function () {
     console.log(`Listening at http://${hostname}:${port}`);
