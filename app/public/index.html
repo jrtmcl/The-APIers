@@ -30,7 +30,7 @@
                 </button>
 
                 <button id="balance" style="display: none;">
-                    Balance: 500 credits
+                    Balance: $0.00
                 </button>
 
                 <button id="logout" style="display: none;">
@@ -227,6 +227,67 @@
     <p id="signup-message"></p>
 </section>
 
+<section id="account-view" style="display: none;">
+
+    <h2>My Account</h2>
+
+    <p>
+        Email:
+        <span id="account-email"></span>
+    </p>
+
+    <h3>
+        Balance:
+        $<span id="account-balance">0.00</span>
+    </h3>
+
+
+    <h3>Deposit</h3>
+
+    <label for="deposit-amount">
+        Deposit Amount:
+    </label>
+
+    <input
+        type="number"
+        id="deposit-amount"
+        min="1"
+        step="0.01"
+    >
+
+    <button id="deposit-button">
+        Deposit with Stripe
+    </button>
+
+
+    <h3>Withdraw</h3>
+
+    <label for="withdraw-amount">
+        Withdrawal Amount:
+    </label>
+
+    <input
+        type="number"
+        id="withdraw-amount"
+        min="1"
+        step="0.01"
+    >
+
+    <button id="withdraw-button">
+        Withdraw
+    </button>
+
+
+    <p id="account-message"></p>
+
+
+    <h3>Transaction History</h3>
+
+    <div id="transaction-history">
+    </div>
+
+</section>
+
 
 </main>
 
@@ -255,6 +316,14 @@ signupButton.addEventListener("click", function () {
     window.location.href = "/signup";
 });
 
+balanceButton.addEventListener(
+    "click",
+    function () {
+        window.location.href = "/account";
+    }
+);
+
+
 let accountName = document.getElementById("account-name");
 let logoutButton = document.getElementById("logout");
 
@@ -266,7 +335,8 @@ function updateAccountHeader(user) {
         balanceButton.style.display = "inline-block";
         logoutButton.style.display = "inline-block";
         accountName.textContent = user.email;
-        balanceButton.textContent = "Balance: " + user.balance + " credits";
+        balanceButton.textContent =
+    "Balance: $" + Number(user.balance).toFixed(2);
     } else {
         loginButton.style.display = "inline-block";
         signupButton.style.display = "inline-block";
@@ -294,16 +364,18 @@ logoutButton.addEventListener("click", function () {
     window.location.href = "/";
 });
 
+
 let loginForm = document.getElementById("login-form");
 
-loginForm.addEventListener("submit", async function (event) {
+loginForm.addEventListener("submit", function (event) {
+
     event.preventDefault();
 
     let email = document.getElementById("login-email").value;
     let password = document.getElementById("login-password").value;
     let message = document.getElementById("login-message");
 
-    let response = await fetch("/login", {
+    fetch("/login", {
         method: "POST",
 
         headers: {
@@ -315,40 +387,56 @@ loginForm.addEventListener("submit", async function (event) {
             password: password
         })
     })
-    .then(function (response) {
-        return response.text().then(function (text) {
-            if (!response.ok) {
-                throw new Error(text);
-            }
 
-            return text;
+    .then(function (response) {
+
+        return response.json()
+        .then(function (body) {
+
+            return {
+                ok: response.ok,
+                body: body
+            };
         });
     })
-    .then(function (text) {
-        message.textContent = text;
 
-        localStorage.setItem("loggedIn", "true");
-        localStorage.setItem("email", email);
+    .then(function (result) {
 
-        setTimeout(function () {
-            window.location.href = "/";
-        }, 1000);
-    })
-    .catch(function (error) {
-        message.textContent = error.message;
-    });
-    
-    let data = await response.json();
+        if (!result.ok) {
+            message.textContent = result.body.error;
+            return;
+        }
 
-    if (response.ok) {
-        message.textContent = data.message;
-        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
-        updateAccountHeader(data.user);
+        message.textContent = result.body.message;
+
+        localStorage.setItem(
+            "loggedIn",
+            "true"
+        );
+
+        localStorage.setItem(
+            "loggedInUser",
+            JSON.stringify(result.body.user)
+        );
+
+        updateAccountHeader(
+            result.body.user
+        );
+
         window.location.href = "/";
-    } else {
-        message.textContent = data.error;
-    }
+    })
+
+    .catch(function (error) {
+
+        console.log(error);
+
+        message.textContent =
+            "Unable to login.";
+    });
 });
+
+
+
 
 let signupForm = document.getElementById("signup-form");
 
@@ -410,6 +498,12 @@ else if (path === "/signup") {
     showView("signup-view");
 }
 
+else if (path === "/account") {
+    showView("account-view");
+    loadAccount();
+}
+
+
 else {
     showView("home-view");
 }
@@ -437,7 +531,7 @@ fetch("/games")
                 "The server did not return an array of games."
             );
         }
-
+        
         if (games.length === 0) {
             message.textContent = "No MLB games found today.";
             return;
@@ -677,14 +771,16 @@ function oddsButtonHtml(label, odds, game, meta) {
 }
 
 function showView(viewId) {
-let views = [
-    "home-view",
-    "teams-view",
-    "players-view",
-    "how-to-view",
-    "login-view",
-    "signup-view"
-];
+
+    let views = [
+        "home-view",
+        "teams-view",
+        "players-view",
+        "how-to-view",
+        "login-view",
+        "signup-view",
+        "account-view"
+    ];
 
     views.forEach(function (id) {
         document.getElementById(id).style.display =
@@ -959,6 +1055,368 @@ function checkForSettledBets() {
             console.error("Settlement check failed:", error);
         });
 }
+
+function loadAccount() {
+
+    let storedUser =
+        localStorage.getItem(
+            "loggedInUser"
+        );
+
+    if (!storedUser) {
+        window.location.href = "/login";
+        return;
+    }
+
+    let user =
+        JSON.parse(storedUser);
+
+    fetch("/api/account/" + user.id)
+
+    .then(function (response) {
+
+        if (!response.ok) {
+            throw new Error(
+                "Unable to load account."
+            );
+        }
+
+        return response.json();
+    })
+
+    .then(function (body) {
+
+        let currentUser = body.user;
+
+        document.getElementById(
+            "account-email"
+        ).textContent =
+            currentUser.email;
+
+        document.getElementById(
+            "account-balance"
+        ).textContent =
+            Number(
+                currentUser.balance
+            ).toFixed(2);
+
+        localStorage.setItem(
+            "loggedInUser",
+            JSON.stringify(currentUser)
+        );
+
+        updateAccountHeader(currentUser);
+
+        loadTransactions();
+    })
+
+    .catch(function (error) {
+
+        console.log(error);
+
+        document.getElementById(
+            "account-message"
+        ).textContent =
+            error.message;
+    });
+}
+
+
+let depositButton =
+    document.getElementById(
+        "deposit-button"
+    );
+
+depositButton.addEventListener(
+    "click",
+    function () {
+
+        let storedUser =
+            localStorage.getItem(
+                "loggedInUser"
+            );
+
+        if (!storedUser) {
+            window.location.href =
+                "/login";
+
+            return;
+        }
+
+        let user =
+            JSON.parse(storedUser);
+
+        let amount =
+            document.getElementById(
+                "deposit-amount"
+            ).value;
+
+        let message =
+            document.getElementById(
+                "account-message"
+            );
+
+        if (
+            amount === "" ||
+            isNaN(Number(amount)) ||
+            Number(amount) <= 0
+        ) {
+
+            message.textContent =
+                "Please enter a valid deposit amount.";
+
+            return;
+        }
+
+        fetch(
+            "/create-checkout-session",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    userId: user.id,
+                    amount: amount
+                })
+            }
+        )
+
+        .then(function (response) {
+
+            if (!response.ok) {
+
+                return response.json()
+                    .then(function (body) {
+                        throw new Error(
+                            body.error
+                        );
+                    });
+            }
+
+            return response.json();
+        })
+
+        .then(function (body) {
+
+            window.location.href =
+                body.url;
+        })
+
+        .catch(function (error) {
+
+            console.log(error);
+
+            message.textContent =
+                error.message;
+        });
+    }
+);
+
+
+// Withdrawl
+
+let withdrawButton =
+    document.getElementById(
+        "withdraw-button"
+    );
+
+withdrawButton.addEventListener(
+    "click",
+    function () {
+
+        let storedUser =
+            localStorage.getItem(
+                "loggedInUser"
+            );
+
+        if (!storedUser) {
+            window.location.href =
+                "/login";
+
+            return;
+        }
+
+        let user =
+            JSON.parse(storedUser);
+
+        let amount =
+            document.getElementById(
+                "withdraw-amount"
+            ).value;
+
+        let message =
+            document.getElementById(
+                "account-message"
+            );
+
+        if (
+            amount === "" ||
+            isNaN(Number(amount)) ||
+            Number(amount) <= 0
+        ) {
+
+            message.textContent =
+                "Please enter a valid withdrawal amount.";
+
+            return;
+        }
+
+        fetch("/withdraw", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+
+            body: JSON.stringify({
+                userId: user.id,
+                amount: amount
+            })
+        })
+
+        .then(function (response) {
+
+            return response.json()
+                .then(function (body) {
+
+                    return {
+                        ok: response.ok,
+                        body: body
+                    };
+                });
+        })
+
+        .then(function (result) {
+
+            if (!result.ok) {
+
+                message.textContent =
+                    result.body.error;
+
+                return;
+            }
+
+            message.textContent =
+                result.body.message;
+
+            document.getElementById(
+                "withdraw-amount"
+            ).value = "";
+
+            loadAccount();
+        })
+
+        .catch(function (error) {
+
+            console.log(error);
+
+            message.textContent =
+                "Unable to withdraw money.";
+        });
+    }
+);
+
+// Transaction History
+
+function loadTransactions() {
+
+    let storedUser =
+        localStorage.getItem(
+            "loggedInUser"
+        );
+
+    if (!storedUser) {
+        return;
+    }
+
+    let user =
+        JSON.parse(storedUser);
+
+    fetch(
+        "/api/transactions/" +
+        user.id
+    )
+
+    .then(function (response) {
+
+        if (!response.ok) {
+            throw new Error(
+                "Unable to load transactions."
+            );
+        }
+
+        return response.json();
+    })
+
+    .then(function (transactions) {
+
+        let container =
+            document.getElementById(
+                "transaction-history"
+            );
+
+        container.innerHTML = "";
+
+        if (transactions.length === 0) {
+
+            container.textContent =
+                "No transactions yet.";
+
+            return;
+        }
+
+        transactions.forEach(
+            function (transaction) {
+
+                let paragraph =
+                    document.createElement(
+                        "p"
+                    );
+
+                let amount =
+                    Number(
+                        transaction.amount
+                    ).toFixed(2);
+
+                if (
+                    transaction.type ===
+                    "deposit"
+                ) {
+
+                    paragraph.textContent =
+                        "Deposit: +$" +
+                        amount;
+                }
+
+                else if (
+                    transaction.type ===
+                    "withdrawal"
+                ) {
+
+                    paragraph.textContent =
+                        "Withdrawal: -$" +
+                        amount;
+                }
+
+                container.appendChild(
+                    paragraph
+                );
+            }
+        );
+    })
+
+    .catch(function (error) {
+        console.log(error);
+    });
+}
+
+
 </script>
 
 </body>

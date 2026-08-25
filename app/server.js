@@ -2,27 +2,109 @@ let express = require("express");
 let axios = require("axios");
 let path = require("path");
 let bycrypt = require("bcrypt");
+let stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+let pg = require("pg");
 
 let app = express();
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
 
 let hostname = "0.0.0.0";
 let port = process.env.PORT || 3000;
 let season = 2026;
+
 let MLB_TEAMS_URL =
     "https://statsapi.mlb.com/api/v1/teams?sportId=1&season=" + season;
 
 let env = {
-    api_key: process.env.API_KEY, api_url: process.env.API_URL
+    api_key: process.env.API_KEY,
+    api_url: process.env.API_URL
 };
 
-let pg = require("pg");
-
 let pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }
+    connectionString: process.env.DATABASE_URL,
+
 });
+
+
+app.post(
+    "/stripe-webhook",
+    express.raw({ type: "application/json" }),
+    function (req, res) {
+
+        let signature = req.headers["stripe-signature"];
+        let event;
+
+        try {
+            event = stripe.webhooks.constructEvent(
+                req.body,
+                signature,
+                process.env.STRIPE_WEBHOOK_SECRET
+            );
+        }
+        catch (error) {
+            console.log(error.message);
+
+            res.status(400).send(
+                "Webhook Error: " + error.message
+            );
+
+            return;
+        }
+
+        if (event.type === "checkout.session.completed") {
+
+            let session = event.data.object;
+            let userId = session.metadata.user_id;
+            let amount = session.amount_total / 100;
+
+            pool.query(
+                "SELECT * FROM transactions WHERE stripe_session_id = $1",
+                [session.id]
+            )
+            .then(function (result) {
+
+                if (result.rows.length > 0) {
+                    return null;
+                }
+
+                return pool.query(
+                    "UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance",
+                    [amount, userId]
+                );
+            })
+            .then(function (result) {
+
+                if (result === null) {
+                    return null;
+                }
+
+                return pool.query(
+                    "INSERT INTO transactions (user_id, type, amount, stripe_session_id) VALUES ($1, $2, $3, $4)",
+                    [
+                        userId,
+                        "deposit",
+                        amount,
+                        session.id
+                    ]
+                );
+            })
+            .then(function () {
+                console.log("Stripe deposit completed.");
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        }
+
+        res.json({
+            received: true
+        });
+    }
+);
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+
 
 function getOdds(event, statID, statEntityID, periodID, betTypeID, sideID) {
     let allOdds = Object.values(event.odds || {});
@@ -360,6 +442,7 @@ app.post("/login", async function (req, res) {
     }
 });
 
+
 app.get("/signup", function (req, res) {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -390,6 +473,244 @@ app.post("/signup", async function (req, res) {
             res.status(500).json({ error: "Unable to create account." });
         }
     }
+});
+
+app.post("/create-checkout-session", function (req, res) {
+
+    let userId = req.body.userId;
+    let amount = Number(req.body.amount);
+
+    if (!userId) {
+        res.status(400).json({
+            error: "You must be logged in."
+        });
+
+        return;
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+        res.status(400).json({
+            error: "Please enter a valid deposit amount."
+        });
+
+        return;
+    }
+
+    pool.query(
+        "SELECT id, email FROM users WHERE id = $1",
+        [userId]
+    )
+    .then(function (result) {
+
+        if (result.rows.length === 0) {
+            throw new Error("User not found.");
+        }
+
+        let user = result.rows[0];
+
+        return stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+
+            mode: "payment",
+
+            customer_email: user.email,
+
+            line_items: [
+                {
+                    price_data: {
+                        currency: "usd",
+
+                        product_data: {
+                            name: "Bet375 Deposit"
+                        },
+
+                        unit_amount: Math.round(
+                            amount * 100
+                        )
+                    },
+
+                    quantity: 1
+                }
+            ],
+
+            metadata: {
+                user_id: String(user.id)
+            },
+
+            success_url:
+                req.protocol +
+                "://" +
+                req.get("host") +
+                "/account?deposit=success",
+
+            cancel_url:
+                req.protocol +
+                "://" +
+                req.get("host") +
+                "/account?deposit=cancel"
+        });
+    })
+    .then(function (session) {
+
+        res.json({
+            url: session.url
+        });
+    })
+    .catch(function (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            error: "Unable to create deposit."
+        });
+    });
+});
+
+app.post("/withdraw", function (req, res) {
+
+    let userId = req.body.userId;
+    let amount = Number(req.body.amount);
+
+    if (!userId) {
+        res.status(400).json({
+            error: "You must be logged in."
+        });
+
+        return;
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+        res.status(400).json({
+            error: "Please enter a valid withdrawal amount."
+        });
+
+        return;
+    }
+
+    pool.query(
+        "SELECT balance FROM users WHERE id = $1",
+        [userId]
+    )
+    .then(function (result) {
+
+        if (result.rows.length === 0) {
+            throw new Error("User not found.");
+        }
+
+        let balance = Number(
+            result.rows[0].balance
+        );
+
+        if (amount > balance) {
+
+            res.status(400).json({
+                error: "You do not have enough money."
+            });
+
+            return null;
+        }
+
+        return pool.query(
+            "UPDATE users SET balance = balance - $1 WHERE id = $2 RETURNING balance",
+            [amount, userId]
+        );
+    })
+    .then(function (result) {
+
+        if (result === null) {
+            return null;
+        }
+
+        return pool.query(
+            "INSERT INTO transactions (user_id, type, amount) VALUES ($1, $2, $3)",
+            [
+                userId,
+                "withdrawal",
+                amount
+            ]
+        );
+    })
+    .then(function (result) {
+
+        if (result === null) {
+            return;
+        }
+
+        res.json({
+            message: "Withdrawal successful."
+        });
+    })
+    .catch(function (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            error: "Unable to withdraw money."
+        });
+    });
+});
+
+
+app.get("/api/transactions/:id", function (req, res) {
+
+    let userId = req.params.id;
+
+    pool.query(
+        "SELECT type, amount, created_at FROM transactions WHERE user_id = $1 ORDER BY created_at DESC",
+        [userId]
+    )
+    .then(function (result) {
+
+        res.json(
+            result.rows
+        );
+    })
+    .catch(function (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            error: "Unable to load transactions."
+        });
+    });
+});
+
+
+app.get("/api/account/:id", function (req, res) {
+
+    let userId = req.params.id;
+
+    pool.query(
+        "SELECT id, email, balance FROM users WHERE id = $1",
+        [userId]
+    )
+    .then(function (result) {
+
+        if (result.rows.length === 0) {
+            res.status(404).json({
+                error: "User not found."
+            });
+
+            return;
+        }
+
+        res.json({
+            user: result.rows[0]
+        });
+    })
+    .catch(function (error) {
+        console.log(error);
+
+        res.status(500).json({
+            error: "Unable to load account."
+        });
+    });
+});
+
+app.get("/account", function (req, res) {
+    res.sendFile(
+        path.join(__dirname, "public", "index.html")
+    );
 });
 
 
