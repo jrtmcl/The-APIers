@@ -2,7 +2,11 @@ let express = require("express");
 let axios = require("axios");
 let path = require("path");
 let bycrypt = require("bcrypt");
-let stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+let stripe = null;
+
+if (process.env.STRIPE_SECRET_KEY) {
+    stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+}
 let pg = require("pg");
 
 let app = express();
