@@ -7,7 +7,7 @@ function calculateWinnings(betAmount, americanOdds) {
 }
 
 function calculatePayout(betAmount, americanOdds) {
-    return betAmount + calculateProfit(betAmount, americanOdds);
+    return betAmount + calculateWinnings(betAmount, americanOdds);
 }
 
 module.exports = {
