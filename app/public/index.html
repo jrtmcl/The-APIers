@@ -468,16 +468,16 @@ function renderGameRow(tbody, game) {
         <td>${game.homeTeamName}</td>
 
         <td class="odds-cell">
-            ${oddsButtonHtml(game.awayTeamName, game.fullGame.moneyline.away, game)}
+            ${oddsButtonHtml(game.awayTeamName, game.fullGame.moneyline.away, game, {periodID: "game", betType: "ml", side: "away", line: null,})}
         </td>
 
         <td class="odds-cell">
-            ${oddsButtonHtml(game.homeTeamName, game.fullGame.moneyline.home, game)}
+            ${oddsButtonHtml(game.homeTeamName, game.fullGame.moneyline.home, game, {periodID: "game", betType: "ml", side: "home", line: null,})}
         </td>
 
         <td class="odds-cell">
-            ${oddsButtonHtml("Over " + totalLine, total.overOdds, game)}
-            ${oddsButtonHtml("Under " + totalLine, total.underOdds, game)}
+            ${oddsButtonHtml("Over " + totalLine, total.overOdds, game, {periodID: "game", betType: "ou", side: "over", line: total.line,})}
+            ${oddsButtonHtml("Under " + totalLine, total.underOdds, game, {periodID: "game", betType: "ou", side: "under", line: total.line,})}
         </td>
 
         <td>
@@ -491,7 +491,7 @@ function renderGameRow(tbody, game) {
 
     let oddsButtons = mainRow.querySelectorAll(".odds-button");
 
-        oddsButtons.forEach(function (button) {
+    oddsButtons.forEach(function (button) {
         button.addEventListener("click", placeBet);
     });
 
@@ -516,44 +516,80 @@ function renderGameRow(tbody, game) {
     });
 }
 
-function placeBet(event) {
+async function placeBet(event) {
     if (localStorage.getItem("loggedIn") !== "true") {
         alert("You must be logged in to place a bet.");
         return;
     }
 
-    let button = event.currentTarget;
+    let storedUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
 
-    let team = button.dataset.team;
-    let odds = Number(button.dataset.odds);
-
-    let wager = prompt(
-        "How many credits would you like to bet on " +
-        team +
-        " at " +
-        formatOdds(odds) +
-        "?"
-    );
-
-    if (wager === null) {
+    if (!storedUser || !storedUser.email) {
+        alert("You must be logged in to place a bet.");
         return;
     }
 
-    wager = Number(wager);
+    let button = event.currentTarget;
+    let data = button.dataset;
+
+    let wagerInput = prompt(
+        "How many credits would you like to bet on " +
+        data.team +
+        " at " +
+        formatOdds(Number(data.odds)) +
+        "?"
+    );
+
+    if (wagerInput === null) {
+        return;
+    }
+
+    let wager = Number(wagerInput);
 
     if (isNaN(wager) || wager <= 0) {
         alert("Please enter a valid wager amount.");
         return;
     }
 
-    alert(
-        "You are betting " +
-        wager +
-        " credits on " +
-        team +
-        " at " +
-        formatOdds(odds)
-    );
+    try {
+        let response = await fetch("/api/bets", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: storedUser.email,
+                eventID: data.eventId,
+                period: data.periodId,
+                betType: data.betType,
+                teamToWin: data.team,
+                line: data.line ? Number(data.line) : null,
+                odds: Number(data.odds),
+                betAmount: wager,
+                homeTeam: data.homeTeam,
+                awayTeam: data.awayTeam,
+                date: data.date,
+            }),
+        });
+
+        let result = await response.json();
+
+        if (!response.ok) {
+            alert(result.error || "Failed to place bet.");
+            return;
+        }
+
+        storedUser.balance = result.balance;
+        localStorage.setItem("loggedInUser", JSON.stringify(storedUser));
+        updateAccountHeader(storedUser);
+
+        alert(
+            "Bet placed: " + wager + " credits on " + data.team +
+            " at " + formatOdds(Number(data.odds)) +
+            ". Potential payout: " + result.bet.potentialwinnings + " credits."
+        );
+    } catch (error) {
+        console.error(error);
+        alert("Something went wrong placing your bet.");
+    }
 }
 
 function buildInningsTable(game) {
@@ -576,11 +612,12 @@ function buildInningsTable(game) {
     let tbody = table.querySelector("tbody");
 
     let periods = [
-        { label: "First 5 Innings", data: game.firstFiveInnings },
+        { label: "First 5 Innings", periodID: "1h", data: game.firstFiveInnings },
     ].concat(
         game.innings.map(function (inning) {
             return {
                 label: "Inning " + inning.inning,
+                periodID: inning.inning + "i",
                 data: inning,
             };
         })
@@ -593,24 +630,30 @@ function buildInningsTable(game) {
         let totalLine = total && total.line !== null && total.line !== undefined ? total.line : "";
 
         row.innerHTML = `
-    <td>${period.label}</td>
-    <td class="odds-cell">${oddsButtonHtml(game.awayTeamName, period.data.moneyline.away, game)}</td>
-    <td class="odds-cell">${oddsButtonHtml(game.homeTeamName, period.data.moneyline.home, game)}</td>
-    <td class="odds-cell">${oddsButtonHtml("Over " + totalLine, total.overOdds, game)}</td>
-    <td class="odds-cell">${oddsButtonHtml("Under " + totalLine, total.underOdds, game)}</td>
-`;
+            <td>${period.label}</td>
+            <td class="odds-cell">${oddsButtonHtml(game.awayTeamName, period.data.moneyline.away, game, {periodID: period.periodID, betType: "ml", side: "away", line: null,})}</td>
+            <td class="odds-cell">${oddsButtonHtml(game.homeTeamName, period.data.moneyline.home, game, {periodID: period.periodID, betType: "ml", side: "home", line: null,})}</td>
+            <td class="odds-cell">${oddsButtonHtml("Over " + totalLine, total.overOdds, game, {periodID: period.periodID, betType: "ou", side: "over", line: total.line,})}</td>
+            <td class="odds-cell">${oddsButtonHtml("Under " + totalLine, total.underOdds, game, {periodID: period.periodID, betType: "ou", side: "under", line: total.line,})}</td>
+        `;
 
         tbody.appendChild(row);
+    });
+
+    table.querySelectorAll(".odds-button").forEach(function (button) {
+        button.addEventListener("click", placeBet);
     });
 
     return table;
 }
 
-function oddsButtonHtml(label, odds, game) {
+function oddsButtonHtml(label, odds, game, meta) {
     let isAvailable =
         odds !== null &&
         odds !== undefined &&
         odds !== "N/A";
+
+    let line = meta.line !== null && meta.line !== undefined ? meta.line : "";
 
     return `
         <button
@@ -623,6 +666,10 @@ function oddsButtonHtml(label, odds, game) {
             data-home-team="${game.homeTeamName}"
             data-away-team="${game.awayTeamName}"
             data-date="${game.date}"
+            data-period-id="${meta.periodID}"
+            data-bet-type="${meta.betType}"
+            data-side="${meta.side}"
+            data-line="${line}"
         >
             ${label} ${formatOdds(odds)}
         </button>
@@ -881,6 +928,36 @@ function formatOdds(odds) {
     }
 
     return oddsText;
+}
+
+function checkForSettledBets() {
+    fetch("/api/settle-bets", { method: "POST" })
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (result) {
+            if (result.settled > 0) {
+                console.log(result.settled + " bet(s) settled.");
+
+                let storedUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
+
+                if (storedUser && storedUser.email) {
+                    fetch("/api/users/" + encodeURIComponent(storedUser.email))
+                        .then(function (response) { return response.json(); })
+                        .then(function (user) {
+                            storedUser.balance = user.balance;
+                            localStorage.setItem("loggedInUser", JSON.stringify(storedUser));
+                            updateAccountHeader(storedUser);
+                        })
+                        .catch(function () {
+
+                        });
+                }
+            }
+        })
+        .catch(function (error) {
+            console.error("Settlement check failed:", error);
+        });
 }
 </script>
 
