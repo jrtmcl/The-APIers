@@ -936,17 +936,21 @@ async function settleBets() {
     let pendingResult = await pool.query(
         "SELECT * FROM bets WHERE status = 'pending'"
     );
- 
+
     let pendingBets = pendingResult.rows;
- 
+
+    console.log("DEBUG settleBets: pending bets =", pendingBets.length);
+
     if (pendingBets.length === 0) {
         return { settled: 0, stillPending: 0 };
     }
- 
+
     let eventIDs = Array.from(
         new Set(pendingBets.map(function (bet) { return bet.eventid; }))
     );
- 
+
+    console.log("DEBUG settleBets: querying eventIDs =", eventIDs);
+
     let response = await axios.request({
         method: "GET",
         url: env.api_url,
@@ -955,35 +959,47 @@ async function settleBets() {
             eventID: eventIDs.join(","),
         },
     });
- 
+
     let events = response.data.data || [];
+
+    console.log("DEBUG settleBets: events returned =", events.length);
+
     let eventsById = {};
- 
+
     events.forEach(function (event) {
         eventsById[event.eventID] = event;
     });
- 
+
     let settledCount = 0;
- 
+
     for (let bet of pendingBets) {
         let event = eventsById[bet.eventid];
- 
+
         if (!event) {
+            console.log("DEBUG settleBets: no matching event for bet", bet.id, bet.eventid);
             continue;
         }
- 
+
         let outcome = gradeBet(event, bet);
- 
+
+        console.log(
+            "DEBUG settleBets: bet", bet.id,
+            "period", bet.period,
+            "bettype", bet.bettype,
+            "teamtowin", bet.teamtowin,
+            "-> outcome:", outcome
+        );
+
         if (outcome === null) {
             continue;
         }
- 
+
         if (outcome === "win") {
             await pool.query(
                 "UPDATE bets SET status = 'won' WHERE id = $1",
                 [bet.id]
             );
- 
+
             await pool.query(
                 "UPDATE users SET balance = balance + $1 WHERE email = $2",
                 [bet.potentialwinnings, bet.email]
@@ -993,7 +1009,7 @@ async function settleBets() {
                 "UPDATE bets SET status = 'push' WHERE id = $1",
                 [bet.id]
             );
- 
+
             await pool.query(
                 "UPDATE users SET balance = balance + $1 WHERE email = $2",
                 [bet.betamount, bet.email]
@@ -1004,10 +1020,10 @@ async function settleBets() {
                 [bet.id]
             );
         }
- 
+
         settledCount++;
     }
- 
+
     return {
         settled: settledCount,
         stillPending: pendingBets.length - settledCount,
