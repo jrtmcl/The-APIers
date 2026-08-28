@@ -842,6 +842,8 @@ function loadTeams() {
 
     message.textContent = "Loading...";
 
+    container.innerHTML = "";
+
     fetch("/api/teams")
         .then(function (response) {
             if (!response.ok) {
@@ -897,15 +899,21 @@ function loadTeams() {
                     <tbody></tbody>
                 `;
 
+
                 let tbody = table.querySelector("tbody");
 
                 group.teams.forEach(function (team) {
                     let row = document.createElement("tr");
 
                     row.innerHTML = `
-                        <td>${team.name}</td>
-                        <td>${team.wins}</td>
-                        <td>${team.losses}</td>
+                        <td>
+                            <div class"team-info">
+                                <img class="team-logo" src="https://www.mlbstatic.com/team-logos/${team.teamId}.svg" alt="${team.name} logo">
+                                <span>${team.name}</span>
+                            </div>
+                        </td>
+                        <td class="team-record">${team.wins}</td>
+                        <td class="team-record">${team.losses}</td>
                     `;
 
                     tbody.appendChild(row);
@@ -1265,7 +1273,7 @@ depositButton.addEventListener(
 );
 
 
-// Withdrawl
+// Withdrawal
 
 let withdrawButton =
     document.getElementById(
