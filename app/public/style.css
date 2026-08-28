@@ -246,3 +246,42 @@ main {
     width: 80px;
     text-align: center;
 }
+
+#how-to-view {
+    max-width: 850px;
+    margin: 30px auto 250px 250px;
+    padding: 20px;
+}
+
+#how-to-view h2 {
+    margin-bottom: 25px;
+    font-size: 32px;
+}
+
+.how-step {
+    margin-bottom: 15px;
+    padding: 18px;
+    border-left: 6px solid #bf1212;
+    border-radius: 8px;
+    color: #222;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.how-step h3 {
+    margin: 0 0 8px;
+    color: #041e42;
+}
+
+.how-step p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.simulator-note {
+    padding: 15px;
+    border-radius: 8px;
+    background: #041e42;
+    font-weight: bold;
+    text-align: center;
+}
