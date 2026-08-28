@@ -939,8 +939,6 @@ async function settleBets() {
 
     let pendingBets = pendingResult.rows;
 
-    console.log("DEBUG settleBets: pending bets =", pendingBets.length);
-
     if (pendingBets.length === 0) {
         return { settled: 0, stillPending: 0 };
     }
@@ -948,8 +946,6 @@ async function settleBets() {
     let eventIDs = Array.from(
         new Set(pendingBets.map(function (bet) { return bet.eventid; }))
     );
-
-    console.log("DEBUG settleBets: querying eventIDs =", eventIDs);
 
     let response = await axios.request({
         method: "GET",
@@ -961,8 +957,6 @@ async function settleBets() {
     });
 
     let events = response.data.data || [];
-
-    console.log("DEBUG settleBets: events returned =", events.length);
 
     let eventsById = {};
 
@@ -976,19 +970,10 @@ async function settleBets() {
         let event = eventsById[bet.eventid];
 
         if (!event) {
-            console.log("DEBUG settleBets: no matching event for bet", bet.id, bet.eventid);
             continue;
         }
 
         let outcome = gradeBet(event, bet);
-
-        console.log(
-            "DEBUG settleBets: bet", bet.id,
-            "period", bet.period,
-            "bettype", bet.bettype,
-            "teamtowin", bet.teamtowin,
-            "-> outcome:", outcome
-        );
 
         if (outcome === null) {
             continue;
