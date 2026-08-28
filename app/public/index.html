@@ -1397,56 +1397,51 @@ withdrawButton.addEventListener(
 );
 
 async function loadBets() {
+    let storedUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
 
-let storedUser = JSON.parse(localStorage.getItem("loggedInUser") ||"null");
-
-if (!storedUser || !storedUser.email) {
-    window.location.href = "/login";
-    return;
-}
-
-let message = document.getElementById("bets-message");
-
-message.textContent = "Loading bets...";
-
-try {
-
-    let response = await fetch("/api/bets/" + encodeURIComponent(storedUser.email));
-
-    if (!response.ok) {
-        throw new Error(
-            "Unable to load bets."
-        );
+    if (!storedUser || !storedUser.email) {
+        window.location.href = "/login";
+        return;
     }
 
-    let bets = await response.json();
+    let message = document.getElementById("bets-message");
 
-    displayBets(bets);
+    message.textContent = "Loading bets...";
 
-    message.textContent = "";
+    try {
+        await fetch("/api/settle-bets", { method: "POST" }).catch(function () {});
 
-    // Refresh balance because a bet may
-    // have just been settled
-    let userResponse = await fetch("/api/users/" + encodeURIComponent(storedUser.email));
+        let response = await fetch("/api/bets/" + encodeURIComponent(storedUser.email));
 
-    if (userResponse.ok) {
-        let user = await userResponse.json();
+        if (!response.ok) {
+            throw new Error(
+                "Unable to load bets."
+            );
+        }
 
-        storedUser.balance = user.balance;
+        let bets = await response.json();
+ 
+        displayBets(bets);
 
-        localStorage.setItem("loggedInUser", JSON.stringify(storedUser));
+        message.textContent = "";
 
-        updateAccountHeader(storedUser);
+        let userResponse = await fetch("/api/users/" + encodeURIComponent(storedUser.email));
+
+        if (userResponse.ok) {
+            let user = await userResponse.json();
+
+            storedUser.balance = user.balance;
+
+            localStorage.setItem("loggedInUser", JSON.stringify(storedUser));
+
+            updateAccountHeader(storedUser);
+        }
     }
+    catch (error) {
+        console.error(error);
 
-}
-catch (error) {
-
-    console.error(error);
-
-    message.textContent =
-        error.message;
-}
+        message.textContent = error.message;
+    }
 }
 
 function displayBets(bets) {
