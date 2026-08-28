@@ -285,3 +285,124 @@ main {
     font-weight: bold;
     text-align: center;
 }
+
+/* =========================
+   PLAYERS PAGE
+   ========================= */
+
+   #players-view {
+    max-width: 1100px;
+    margin: 35px auto;
+    padding: 25px 30px 35px;
+
+    background: rgba(4, 30, 66, 0.88);
+    border-radius: 12px;
+    border-top: 5px solid #bf1212;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+
+/* Page title */
+
+#players-view h2 {
+    margin: 0 0 25px;
+
+    font-size: 34px;
+    color: white;
+}
+
+
+/* Filters */
+
+#players-view label {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+
+    margin-right: 8px;
+}
+
+
+#players-view select {
+    padding: 9px 35px 9px 12px;
+    margin-right: 25px;
+    margin-bottom: 20px;
+
+    font-size: 16px;
+
+    background: white;
+    color: #041e42;
+
+    border: 2px solid #d6d6d6;
+    border-radius: 7px;
+
+    cursor: pointer;
+}
+
+
+#players-view select:hover {
+    border-color: #bf1212;
+}
+
+
+#players-view select:focus {
+    outline: none;
+    border-color: #bf1212;
+}
+
+#players-view table {
+    width: 100%;
+
+    border-collapse: collapse;
+    overflow: hidden;
+
+    background: white;
+    color: #222;
+
+    border-radius: 8px;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+#players-view th {
+    padding: 14px 16px;
+
+    background: #041e42;
+    color: white;
+
+    font-size: 18px;
+    text-align: left;
+
+    border-bottom: 4px solid #bf1212;
+}
+
+#players-view td {
+    padding: 12px 16px;
+
+    font-size: 16px;
+
+    border-bottom: 1px solid #ddd;
+}
+
+#players-view tbody tr:nth-child(even) {
+    background: #f2f5f8;
+}
+
+#players-view tbody tr:hover {
+    background: #dce8f5;
+}
+
+#players-view td:first-child {
+    font-weight: bold;
+    color: #041e42;
+}
+
+#players-view td:last-child {
+    font-weight: bold;
+}
+
+#players-message {
+    font-weight: bold;
+    margin: 5px 0 15px;
+}
