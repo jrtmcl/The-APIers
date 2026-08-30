@@ -1039,4 +1039,27 @@ main {
     overflow: hidden;
 }
 
+/* =========================
+   HOME BUTTONS
+   ========================= */
+
+#home-view table button {
+    background: #e6e6e6;
+    color: #041e42;
+
+    border: 1px solid #b8b8b8;
+    border-radius: 7px;
+
+    font-weight: bold;
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+#home-view table button:hover {
+    background: #bf1212;
+    color: white;
+    border-color: #bf1212;
+}
+
 
