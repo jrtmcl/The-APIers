@@ -76,18 +76,13 @@ main {
 }
 
 .profile-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 28px;
-    height: 28px;
-
-    background: white;
-    color: #041e42;
+    width: 30px;
+    height: 30px;
 
     border-radius: 50%;
-    font-size: 13px;
+    object-fit: cover;
+
+    border: 2px solid white;
 }
 
 .account-buttons button {
