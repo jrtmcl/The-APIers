@@ -20,7 +20,10 @@
             </div>
         
             <div class="account-buttons">
-            <span id="account-name" style="display: none;"></span>
+            <div id="account-name" style="display: none;">
+    <span class="profile-icon">●</span>
+    <span id="account-email-header"></span>
+</div>
                 <button id="login">
                     Login
                 </button>
@@ -414,10 +417,10 @@ function updateAccountHeader(user) {
     if (user !== null) {
         loginButton.style.display = "none";
         signupButton.style.display = "none";
-        accountName.style.display = "inline";
+        accountName.style.display = "flex";
         balanceButton.style.display = "inline-block";
         logoutButton.style.display = "inline-block";
-        accountName.textContent = user.email;
+        document.getElementById("account-email-header").textContent = user.email;
         balanceButton.textContent =
     "Balance: $" + Number(user.balance).toFixed(2);
     } else {
@@ -426,7 +429,7 @@ function updateAccountHeader(user) {
         accountName.style.display = "none";
         balanceButton.style.display = "none";
         logoutButton.style.display = "none";
-        accountName.textContent = "";
+        document.getElementById("account-email-header").textContent = "";
         balanceButton.textContent = "";
     }
 }
