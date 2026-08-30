@@ -772,21 +772,24 @@ function gradeBet(event, bet) {
         return null;
     }
 
+    let corePick = String(bet.teamtowin).replace(/\s*\([^)]*\)\s*$/, "").trim();
+
     if (bet.bettype === "ml" || bet.bettype === "ml3way") {
         if (result.awayRuns === null || result.homeRuns === null) {
             return null;
         }
 
         if (result.awayRuns === result.homeRuns) {
-            if (bet.teamtowin === "Tie") {
+            if (corePick === "Tie") {
                 return "win";
             }
+
             return bet.bettype === "ml3way" ? "loss" : "push";
         }
 
         let winningTeam = result.awayRuns > result.homeRuns ? bet.awayteam : bet.hometeam;
  
-        return bet.teamtowin === winningTeam ? "win" : "loss";
+        return corePick === winningTeam ? "win" : "loss";
     }
 
     if (bet.bettype === "ou") {
@@ -807,12 +810,8 @@ function gradeBet(event, bet) {
         let actualSide =
             result.totalRuns > line ? "Over" : "Under";
     
-        let pickedSide =
-            String(bet.teamtowin).split(" ")[0];
-    
-        return pickedSide === actualSide
-            ? "win"
-            : "loss";
+        let pickedSide = corePick.split(" ")[0];
+        return pickedSide === actualSide ? "win" : "loss";
     }
 
     return null;

@@ -788,12 +788,17 @@ function buildInningsTable(game) {
         let total = period.data.total;
         let totalLine = total && total.line !== null && total.line !== undefined ? total.line : "";
 
+        let awayLabel = game.awayTeamName + " (" + period.label + ")";
+        let homeLabel = game.homeTeamName + " (" + period.label + ")";
+        let overLabel = "Over " + totalLine + " (" + period.label + ")";
+        let underLabel = "Under " + totalLine + " (" + period.label + ")";
+        
         row.innerHTML = `
             <td>${period.label}</td>
-            <td class="odds-cell">${oddsButtonHtml(game.awayTeamName, period.data.moneyline.away, game, {periodID: period.periodID, betType: "ml", side: "away", line: null,})}</td>
-            <td class="odds-cell">${oddsButtonHtml(game.homeTeamName, period.data.moneyline.home, game, {periodID: period.periodID, betType: "ml", side: "home", line: null,})}</td>
-            <td class="odds-cell">${oddsButtonHtml("Over " + totalLine, total.overOdds, game, {periodID: period.periodID, betType: "ou", side: "over", line: total.line,})}</td>
-            <td class="odds-cell">${oddsButtonHtml("Under " + totalLine, total.underOdds, game, {periodID: period.periodID, betType: "ou", side: "under", line: total.line,})}</td>
+            <td class="odds-cell">${oddsButtonHtml(awayLabel, period.data.moneyline.away, game, {periodID: period.periodID, betType: "ml", side: "away", line: null,})}</td>
+            <td class="odds-cell">${oddsButtonHtml(homeLabel, period.data.moneyline.home, game, {periodID: period.periodID, betType: "ml", side: "home", line: null,})}</td>
+            <td class="odds-cell">${oddsButtonHtml(overLabel, total.overOdds, game, {periodID: period.periodID, betType: "ou", side: "over", line: total.line,})}</td>
+            <td class="odds-cell">${oddsButtonHtml(underLabel, total.underOdds, game, {periodID: period.periodID, betType: "ou", side: "under", line: total.line,})}</td>
         `;
 
         tbody.appendChild(row);
