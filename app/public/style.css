@@ -406,3 +406,176 @@ main {
     font-weight: bold;
     margin: 5px 0 15px;
 }
+
+/* =========================
+   ACCOUNT PAGE
+   ========================= */
+
+#account-view {
+    max-width: 1000px;
+    margin: 35px auto;
+    padding: 25px 30px 35px;
+
+    background: rgba(4, 30, 66, 0.88);
+    border-radius: 12px;
+    border-top: 5px solid #bf1212;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+
+#account-view h2 {
+    margin: 0 0 25px;
+
+    font-size: 34px;
+    color: white;
+}
+
+
+.account-info {
+    background: white;
+    color: #222;
+
+    padding: 18px 22px;
+    margin-bottom: 25px;
+
+    border-left: 6px solid #bf1212;
+    border-radius: 8px;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+
+.account-info p {
+    margin: 0 0 8px;
+}
+
+
+.account-info h3 {
+    margin: 0;
+
+    color: #041e42;
+    font-size: 24px;
+}
+
+
+.account-actions {
+    display: flex;
+    gap: 20px;
+
+    margin-bottom: 25px;
+}
+
+
+.account-card {
+    flex: 1;
+
+    background: white;
+    color: #222;
+
+    padding: 22px;
+
+    border-radius: 8px;
+    border-left: 6px solid #bf1212;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+
+.account-card h3 {
+    margin: 0 0 8px;
+
+    color: #041e42;
+    font-size: 24px;
+}
+
+
+.account-card p {
+    margin: 0 0 20px;
+
+    color: #555;
+}
+
+
+.account-card label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #041e42;
+    font-weight: bold;
+}
+
+
+.account-card input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 10px;
+    margin-bottom: 15px;
+
+    font-size: 16px;
+
+    border: 2px solid #d6d6d6;
+    border-radius: 7px;
+}
+
+
+.account-card input:focus {
+    outline: none;
+    border-color: #bf1212;
+}
+
+
+.account-card button {
+    width: 100%;
+
+    padding: 11px;
+
+    background: #bf1212;
+    color: white;
+
+    border: none;
+    border-radius: 7px;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+
+.account-card button:hover {
+    background: #971010;
+}
+
+
+#account-message {
+    font-weight: bold;
+}
+
+
+.transaction-section {
+    background: white;
+    color: #222;
+
+    padding: 22px;
+
+    border-radius: 8px;
+    border-left: 6px solid #bf1212;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+
+.transaction-section h3 {
+    margin-top: 0;
+
+    color: #041e42;
+    font-size: 24px;
+}
+
+
+#transaction-history {
+    line-height: 1.8;
+}
