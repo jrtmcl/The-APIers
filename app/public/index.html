@@ -772,8 +772,8 @@ async function placeBet(event) {
 }
 
 function buildInningsTable(game) {
-    let table = document.createElement("table");
-    table.setAttribute("border", "1");
+let table = document.createElement("table");
+
 
     table.innerHTML = `
         <thead>
@@ -929,7 +929,7 @@ function loadTeams() {
                 container.appendChild(divisionHeading);
 
                 let table = document.createElement("table");
-                table.setAttribute("border", "1");
+table.className = "teams-table";
 
                 table.innerHTML = `
                     <thead>
@@ -950,7 +950,7 @@ function loadTeams() {
 
                     row.innerHTML = `
                         <td>
-                            <div class"team-info">
+                            <div class="team-info">
                                 <img class="team-logo" src="https://www.mlbstatic.com/team-logos/${team.teamId}.svg" alt="${team.name} logo">
                                 <span>${team.name}</span>
                             </div>

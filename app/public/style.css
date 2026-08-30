@@ -183,69 +183,164 @@ main {
     margin-bottom: 0;
 }
 
+
+/* =========================
+   TEAMS PAGE
+   ========================= */
+
 #teams-view {
-    max-width: 900px;
-    margin: 30px auto 30px 30px;
-    padding: 20px;
+    max-width: 1100px;
+    margin: 35px auto;
+    padding: 25px 30px 35px;
+
+    background: white;
+
+    border-radius: 12px;
+    border-top: 5px solid #bf1212;
+
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
-#teams-groups h3 {
-    margin-top: 35px;
-    font-size: 26px;
+
+#teams-view h2 {
+    margin: 0 0 25px;
+
+    font-size: 34px;
+    color: #041e42;
 }
+
+
+#teams-message {
+    color: #041e42;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+
+#teams-groups h3 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+
+    font-size: 26px;
+    color: #041e42;
+}
+
 
 #teams-groups h4 {
     margin: 25px 0 10px;
+
     font-size: 19px;
+    color: #041e42;
 }
+
 
 .teams-table {
     width: 100%;
     margin-bottom: 25px;
+
     border-collapse: collapse;
-    color: #222;
+
     background: white;
+    color: #041e42;
+
+    border: 2px solid #041e42;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
 
 .teams-table th {
-    padding: 12px;
-    color: white;
-    background: #041e42;
+    padding: 12px 16px;
+
+    background: white;
+    color: #041e42;
+
+    border: 2px solid #041e42;
+
     text-align: left;
+    font-size: 17px;
 }
+
 
 .teams-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #ddd;
+    padding: 12px 16px;
+
+    color: #041e42;
+    background: white;
+
+    border: 2px solid #041e42;
+
+    font-size: 16px;
 }
 
-.teams-table tr:nth-child(even) {
-    background: #f4f4f4;
+
+.teams-table tbody tr:nth-child(even) td {
+    background: #f2f5f8;
 }
 
-.teams-table tr:hover {
-    background: #e7eef7;
+
+.teams-table tbody tr:hover td {
+    background: #dce8f5;
 }
+
 
 .team-info {
     display: flex;
     align-items: center;
     gap: 10px;
+
     font-weight: bold;
+    color: #041e42;
 }
+
 
 .team-logo {
     width: 36px;
     height: 36px;
+
     object-fit: contain;
 }
+
 
 .teams-table th:nth-child(2),
 .teams-table th:nth-child(3),
 .team-record {
-    width: 80px;
+    width: 100px;
     text-align: center;
 }
+
+/* Extra stuff for styling */
+
+.teams-table {
+    border: 2px solid #041e42;
+    color: #041e42;
+}
+
+.teams-table th,
+.teams-table td {
+    border: 2px solid #041e42;
+    color: #041e42;
+}
+
+.teams-table th {
+    background: white;
+}
+
+.teams-table td {
+    background: white;
+}
+
+.teams-table th *,
+.teams-table td * {
+    color: #041e42;
+}
+
+
+
+
+
+
+
 
 #how-to-view {
     max-width: 850px;
