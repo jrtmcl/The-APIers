@@ -802,7 +802,6 @@ main {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
-
 #home-view h2 {
     margin: 0 0 10px;
 
@@ -810,13 +809,11 @@ main {
     color: white;
 }
 
-
 #home-view > p {
     color: white;
     font-size: 17px;
     margin-bottom: 20px;
 }
-
 
 #games-message {
     color: white;
@@ -824,21 +821,21 @@ main {
     margin: 5px 0 15px;
 }
 
-
 #home-view > table {
     width: 100%;
 
-    border-collapse: collapse;
-    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
 
     background: white;
     color: #222;
 
+    border: 1px solid white;
     border-radius: 8px;
+    overflow: hidden;
 
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
-
 
 #home-view > table th {
     padding: 14px 16px;
@@ -849,88 +846,19 @@ main {
     font-size: 16px;
     text-align: left;
 
+    border-right: 1px solid #c7c7c7;
     border-bottom: 4px solid #bf1212;
 }
 
+#home-view > table th:last-child {
+    border-right: none;
+}
 
 #home-view > table td {
     padding: 12px 16px;
 
     font-size: 15px;
 
-    border-bottom: 1px solid #ddd;
-}
-
-
-#home-view > table tbody tr:nth-child(even) {
-    background: #f2f5f8;
-}
-
-
-#home-view > table tbody tr:hover {
-    background: #dce8f5;
-}
-
-
-#home-view > table td:first-child {
-    font-weight: bold;
-    color: #041e42;
-}
-
-
-#home-view .odds-button {
-    width: 100%;
-
-    padding: 10px 12px;
-
-    background: #041e42;
-    color: white;
-
-    border: none;
-    border-radius: 6px;
-
-    font-size: 15px;
-    font-weight: bold;
-
-    cursor: pointer;
-}
-
-
-#home-view .odds-button:hover {
-    background: #bf1212;
-}
-
-
-#home-view .innings-toggle {
-    padding: 9px 12px;
-
-    background: #041e42;
-    color: white;
-
-    border: none;
-    border-radius: 6px;
-
-    font-weight: bold;
-    cursor: pointer;
-}
-
-
-#home-view .innings-toggle:hover {
-    background: #bf1212;
-}
-
-/* Make Home rows alternate*/
-#home-view > table tbody tr:nth-child(odd) td {
-    background: white;
-}
-
-#home-view > table tbody tr:nth-child(even) td {
-    background: #f2f5f8;
-}
-
-
-/* Clear lines between cells */
-#home-view > table td {
     border-right: 1px solid #c7c7c7;
     border-bottom: 1px solid #d6d6d6;
 }
@@ -939,69 +867,46 @@ main {
     border-right: none;
 }
 
-
-/* Clear lines between header cells */
-#home-view > table th {
-    border-right: 1px solid #c7c7c7;
-}
-
-#home-view > table th:last-child {
-    border-right: none;
-}
-
-
-/* Give betting buttons visible borders */
-#home-view .odds-button {
-    border: 2px solid #041e42;
-}
-
-
-/* Add space when multiple buttons are inside one cell */
-#home-view .odds-cell .odds-button {
-    margin-bottom: 7px;
-}
-
-#home-view .odds-cell .odds-button:last-child {
-    margin-bottom: 0;
-}
-
-
-/* Give Show Innings button a border too */
-#home-view .innings-toggle {
-    border: 2px solid #041e42;
-}
-
-
-/* =========================
-   FINAL HOME TABLE CHANGES
-   ========================= */
-
 #home-view > table tbody tr:nth-child(odd) td {
-    background-color: white;
+    background: white;
 }
 
 #home-view > table tbody tr:nth-child(even) td {
-    background-color: #f2f5f8;
+    background: #f2f5f8;
 }
 
-#home-view > table tbody td {
-    border-right: 1px solid #c7c7c7;
-    border-bottom: 1px solid #d6d6d6;
+#home-view > table tbody tr:hover td {
+    background: #dce8f5;
+}
+
+#home-view > table td:first-child {
+    font-weight: bold;
+    color: #041e42;
 }
 
 #home-view .odds-button {
-    background: #bf1212;
-    color: white;
+    width: 100%;
 
-    border: 2px solid #bf1212;
+    padding: 10px 12px;
+
+    background: #e6e6e6;
+    color: #041e42;
+
+    border: 2px solid #b8b8b8;
     border-radius: 7px;
 
-    transition: background 0.2s, border-color 0.2s;
+    font-size: 15px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.2s;
 }
 
 #home-view .odds-button:hover {
-    background: #041e42;
-    border-color: #041e42;
+    background: #bf1212;
+    color: white;
+    border-color: #bf1212;
 }
 
 #home-view .odds-cell .odds-button {
@@ -1013,41 +918,12 @@ main {
 }
 
 #home-view .innings-toggle {
-    background: #bf1212;
-    color: white;
+    padding: 9px 12px;
 
-    border: 2px solid #bf1212;
-    border-radius: 7px;
-
-    transition: background 0.2s, border-color 0.2s;
-}
-
-#home-view .innings-toggle:hover {
-    background: #041e42;
-    border-color: #041e42;
-}
-
-/* =========================
-   HOME TABLE BORDER
-   ========================= */
-
-#home-view > table {
-    border: 1px solid white;
-    border-radius: 8px;
-    border-collapse: separate;
-    border-spacing: 0;
-    overflow: hidden;
-}
-
-/* =========================
-   HOME BUTTONS
-   ========================= */
-
-#home-view table button {
     background: #e6e6e6;
     color: #041e42;
 
-    border: 1px solid #b8b8b8;
+    border: 2px solid #b8b8b8;
     border-radius: 7px;
 
     font-weight: bold;
@@ -1056,10 +932,8 @@ main {
     transition: 0.2s;
 }
 
-#home-view table button:hover {
+#home-view .innings-toggle:hover {
     background: #bf1212;
     color: white;
     border-color: #bf1212;
 }
-
-
