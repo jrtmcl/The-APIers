@@ -970,3 +970,73 @@ main {
 #home-view .innings-toggle {
     border: 2px solid #041e42;
 }
+
+
+/* =========================
+   FINAL HOME TABLE CHANGES
+   ========================= */
+
+#home-view > table tbody tr:nth-child(odd) td {
+    background-color: white;
+}
+
+#home-view > table tbody tr:nth-child(even) td {
+    background-color: #f2f5f8;
+}
+
+#home-view > table tbody td {
+    border-right: 1px solid #c7c7c7;
+    border-bottom: 1px solid #d6d6d6;
+}
+
+#home-view .odds-button {
+    background: #bf1212;
+    color: white;
+
+    border: 2px solid #bf1212;
+    border-radius: 7px;
+
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#home-view .odds-button:hover {
+    background: #041e42;
+    border-color: #041e42;
+}
+
+#home-view .odds-cell .odds-button {
+    margin-bottom: 7px;
+}
+
+#home-view .odds-cell .odds-button:last-child {
+    margin-bottom: 0;
+}
+
+#home-view .innings-toggle {
+    background: #bf1212;
+    color: white;
+
+    border: 2px solid #bf1212;
+    border-radius: 7px;
+
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#home-view .innings-toggle:hover {
+    background: #041e42;
+    border-color: #041e42;
+}
+
+/* =========================
+   HOME TABLE BORDER
+   ========================= */
+
+#home-view > table {
+    border: 1px solid white;
+    border-radius: 8px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+
