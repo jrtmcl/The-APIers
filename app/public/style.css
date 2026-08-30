@@ -918,3 +918,55 @@ main {
 #home-view .innings-toggle:hover {
     background: #bf1212;
 }
+
+/* Make Home rows alternate*/
+#home-view > table tbody tr:nth-child(odd) td {
+    background: white;
+}
+
+#home-view > table tbody tr:nth-child(even) td {
+    background: #f2f5f8;
+}
+
+
+/* Clear lines between cells */
+#home-view > table td {
+    border-right: 1px solid #c7c7c7;
+    border-bottom: 1px solid #d6d6d6;
+}
+
+#home-view > table td:last-child {
+    border-right: none;
+}
+
+
+/* Clear lines between header cells */
+#home-view > table th {
+    border-right: 1px solid #c7c7c7;
+}
+
+#home-view > table th:last-child {
+    border-right: none;
+}
+
+
+/* Give betting buttons visible borders */
+#home-view .odds-button {
+    border: 2px solid #041e42;
+}
+
+
+/* Add space when multiple buttons are inside one cell */
+#home-view .odds-cell .odds-button {
+    margin-bottom: 7px;
+}
+
+#home-view .odds-cell .odds-button:last-child {
+    margin-bottom: 0;
+}
+
+
+/* Give Show Innings button a border too */
+#home-view .innings-toggle {
+    border: 2px solid #041e42;
+}
